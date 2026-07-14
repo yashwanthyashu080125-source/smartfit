@@ -1,0 +1,270 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+
+<!-- ================= STATISTICS ================= -->
+
+<div class="stats-grid animate-fade-in">
+
+<div class="stat-card stat-card-primary">
+<div class="stat-icon">
+<i class="fas fa-users"></i>
+</div>
+
+<div class="stat-details">
+<h3>Total Users</h3>
+<p class="stat-number">{{ total_users }}</p>
+<span class="stat-change positive">
+<i class="fas fa-arrow-up"></i> 12% this month
+</span>
+</div>
+</div>
+
+
+<div class="stat-card stat-card-success">
+<div class="stat-icon">
+<i class="fas fa-dumbbell"></i>
+</div>
+
+<div class="stat-details">
+<h3>Total Workouts</h3>
+<p class="stat-number">{{ total_workouts }}</p>
+<span class="stat-change positive">
+<i class="fas fa-arrow-up"></i> 8% this month
+</span>
+</div>
+</div>
+
+
+<div class="stat-card stat-card-info">
+<div class="stat-icon">
+<i class="fas fa-utensils"></i>
+</div>
+
+<div class="stat-details">
+<h3>Total Meals</h3>
+<p class="stat-number">{{ total_meals }}</p>
+<span class="stat-change positive">
+<i class="fas fa-arrow-up"></i> 15% this month
+</span>
+</div>
+</div>
+
+
+<div class="stat-card stat-card-warning">
+<div class="stat-icon">
+<i class="fas fa-chart-line"></i>
+</div>
+
+<div class="stat-details">
+<h3>Active Sessions</h3>
+<p class="stat-number">24</p>
+<span class="stat-change negative">
+<i class="fas fa-arrow-down"></i> 3% this hour
+</span>
+</div>
+</div>
+
+</div>
+
+
+<!-- ================= MANAGEMENT CENTER ================= -->
+
+<div class="section-header animate-fade-in">
+
+<h3 class="section-title">
+<i class="fas fa-th-large"></i>
+Management Center
+</h3>
+
+<p class="section-subtitle">
+Quick access to all administrative functions
+</p>
+
+</div>
+
+
+<div class="management-grid animate-slide-up">
+
+<!-- USER INSIGHTS -->
+<a href="{{ url_for('admin.users') }}" class="management-card">
+
+<div class="card-icon-wrapper">
+<i class="fas fa-users"></i>
+</div>
+
+<h4>User Insights</h4>
+
+<p>View user metrics and manage profiles</p>
+
+<span class="card-arrow">
+<i class="fas fa-arrow-right"></i>
+</span>
+
+</a>
+
+
+<!-- PLANS -->
+<a href="{{ url_for('admin.plans') }}" class="management-card">
+
+<div class="card-icon-wrapper">
+<i class="fas fa-dumbbell"></i>
+</div>
+
+<h4>Workout & Diet Plans</h4>
+
+<p>Create and assign workout and diet plans</p>
+
+<span class="card-arrow">
+<i class="fas fa-arrow-right"></i>
+</span>
+
+</a>
+
+
+
+
+<!-- ANALYTICS -->
+<a href="{{ url_for('admin.analytics') }}" class="management-card">
+
+<div class="card-icon-wrapper">
+<i class="fas fa-chart-pie"></i>
+</div>
+
+<h4>Analytics</h4>
+
+<p>View system statistics and insights</p>
+
+<span class="card-arrow">
+<i class="fas fa-arrow-right"></i>
+</span>
+
+</a>
+
+
+<!-- REPORTS -->
+<a href="{{ url_for('admin.reports') }}" class="management-card">
+
+<div class="card-icon-wrapper">
+<i class="fas fa-file-download"></i>
+</div>
+
+<h4>Reports</h4>
+
+<p>Generate and download system reports</p>
+
+<span class="card-arrow">
+<i class="fas fa-arrow-right"></i>
+</span>
+
+</a>
+
+
+<!-- SETTINGS -->
+<a href="{{ url_for('admin.settings') }}" class="management-card">
+
+<div class="card-icon-wrapper">
+<i class="fas fa-sliders-h"></i>
+</div>
+
+<h4>System Settings</h4>
+
+<p>Configure SmartFit application settings</p>
+
+<span class="card-arrow">
+<i class="fas fa-arrow-right"></i>
+</span>
+
+</a>
+
+</div>
+
+<!-- ================= RECENT ACTIVITY ================= -->
+
+<div class="row mt-5">
+    <div class="col-lg-8">
+        <div class="table-container animate-slide-up">
+            <div class="section-header mb-4">
+                <h3 class="section-title"><i class="fas fa-history"></i> Recent System Activity</h3>
+                <p class="section-subtitle">Real-time log of user actions across the platform</p>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in recent_activities %}
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-small">{{ activity.user.name[0]|upper if activity.user and activity.user.name else 'S' }}</div>
+                                    <span>{{ activity.user.name if activity.user and activity.user.name else 'System' }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-soft-{{ 'primary' if activity.activity_type == 'workout' else 'success' if activity.activity_type == 'meal' else 'info' }}">
+                                    {{ activity.activity_type|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <small>{{ activity.description }}</small>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ activity.date.strftime('%H:%M') }}</small>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">No recent activity found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="table-container animate-slide-up" style="animation-delay: 0.2s;">
+            <div class="section-header mb-4">
+                <h3 class="section-title"><i class="fas fa-user-plus"></i> New Members</h3>
+                <p class="section-subtitle">Latest registrations</p>
+            </div>
+            <div class="new-users-list">
+                {% for u in recent_users %}
+                <div class="new-user-item d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="user-avatar-small">{{ u.name[0]|upper if u.name else 'U' }}</div>
+                        <div>
+                            <div class="font-weight-bold" style="font-size: 14px;">{{ u.name }}</div>
+                            <small class="text-muted">{{ u.created_at.strftime('%Y-%m-%d') }}</small>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin.user_detail', user_id=u.id) }}" class="btn-icon btn-outline-success btn-sm">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('admin.users') }}" class="btn btn-primary w-100 btn-sm">View All Users</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge-soft-primary { background: #e6fff3; color: #00c896; }
+    .badge-soft-success { background: #d1f7e9; color: #00a87d; }
+    .badge-soft-info { background: #e6f7ff; color: #0096c7; }
+    .new-user-item:last-child { border-bottom: none !important; }
+</style>
+{% endblock %}

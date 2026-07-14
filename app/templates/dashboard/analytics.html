@@ -1,0 +1,913 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% block title %}Analytics - SmartFit{% endblock %}
+
+{% block head %}
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+
+    <!-- Header -->
+    <div class="analytics-header animate-up">
+        <div class="header-content">
+            <h1 class="analytics-title">
+                <i class="fas fa-chart-line"></i> Analytics Intelligence
+            </h1>
+            <p class="analytics-subtitle">Real-time physiological data processing and performance forecasting</p>
+        </div>
+    </div>
+
+    <!-- Metrics Cards -->
+    <div class="metrics-grid">
+        <div class="metric-card metric-primary animate-up" style="animation-delay: 0.1s">
+            <div class="metric-icon">
+                <i class="fas fa-fire"></i>
+            </div>
+            <div class="metric-content">
+                <h3>Total Calories Burned</h3>
+                <div class="metric-value">{{ total_calories|default(0) }}</div>
+                <div class="metric-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>{{ calories_change|default(0) }}% vs last period</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-card metric-success animate-up" style="animation-delay: 0.2s">
+            <div class="metric-icon">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <div class="metric-content">
+                <h3>Total Calories Consumed</h3>
+                <div class="metric-value">{{ total_consumed|default(0) }}</div>
+                <div class="metric-trend {% if net_calories|default(0) < 0 %}positive{% else %}negative{% endif %}">
+                    <i class="fas fa-{{ 'arrow-down' if net_calories|default(0) < 0 else 'arrow-up' }}"></i>
+                    <span>Net: {{ net_calories|default(0) }} kcal</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-card metric-info animate-up" style="animation-delay: 0.3s">
+            <div class="metric-icon">
+                <i class="fas fa-dumbbell"></i>
+            </div>
+            <div class="metric-content">
+                <h3>Total Workouts</h3>
+                <div class="metric-value">{{ total_workouts|default(0) }}</div>
+                <div class="metric-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>{{ workouts_change|default(0) }}% more active</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-card metric-warning animate-up" style="animation-delay: 0.4s">
+            <div class="metric-icon">
+                <i class="fas fa-stopwatch"></i>
+            </div>
+            <div class="metric-content">
+                <h3>Total Active Time</h3>
+                <div class="metric-value">{{ total_duration|default(0) }} <span class="metric-unit">min</span></div>
+                <div class="metric-trend">
+                    <i class="fas fa-clock"></i>
+                    <span>{{ avg_duration|default(0) }} min/session</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+
+        <!-- Calories Balance Chart -->
+        <div class="chart-card chart-large">
+            <div class="chart-header">
+                <h3><i class="fas fa-balance-scale"></i> Calories Balance</h3>
+                <div class="chart-legend">
+                    <span class="legend-item"><span class="legend-dot burned"></span> Burned</span>
+                    <span class="legend-item"><span class="legend-dot consumed"></span> Consumed</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="balanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Workout Trends Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-line"></i> Workout Trends</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="workoutChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Nutrition Breakdown Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-pie-chart"></i> Nutrition Breakdown</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="nutritionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- NEW: Weekly Training Volume Chart -->
+        <div class="chart-card chart-large">
+            <div class="chart-header">
+                <h3><i class="fas fa-layer-group"></i> Weekly Training Volume</h3>
+                <div class="chart-legend">
+                    <span class="legend-item"><span class="legend-dot" style="background:#f97316"></span> Sets × Reps × Weight (kg)</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="volumeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- NEW: Workout Type Distribution -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-th-large"></i> Workout Type Split</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="typeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- NEW: RPE Trend Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-tachometer-alt"></i> RPE Trend</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="rpeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Sleep Cycle Chart -->
+        <div class="chart-card chart-wide">
+            <div class="chart-header">
+                <h3><i class="fas fa-bed"></i> Sleep Cycle</h3>
+                <div class="chart-legend">
+                    <span class="legend-item"><span class="legend-dot sleep"></span> Hours of Sleep</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="sleepChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Insights Section -->
+    <div class="insights-section">
+        <h3><i class="fas fa-lightbulb"></i> Personalized Insights</h3>
+        <div class="insights-grid">
+            {% if net_calories|default(0) < 0 %} <div class="insight-card insight-positive">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <h4>Great Progress!</h4>
+                    <p>You're in a calorie deficit of {{ net_calories|default(0)|abs }} kcal. Keep up the great work!
+                    </p>
+                </div>
+        </div>
+        {% elif net_calories|default(0) > 500 %}
+        <div class="insight-card insight-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <h4>Watch Your Intake</h4>
+                <p>You've consumed {{ net_calories|default(0) }} kcal more than burned.</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="insight-card insight-neutral">
+            <i class="fas fa-balance-scale"></i>
+            <div>
+                <h4>Maintenance Mode</h4>
+                <p>Your calories are balanced. Perfect for maintaining weight!</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+
+<style>
+    .analytics-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+    }
+
+    .analytics-header {
+        margin-bottom: 30px;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        border: 1px solid rgba(249, 115, 22, 0.1);
+        border-left: 6px solid #f97316;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .analytics-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .analytics-title i {
+        color: #f97316;
+    }
+
+    .analytics-subtitle {
+        color: #6b7280;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 24px;
+        margin-bottom: 36px;
+    }
+
+    .metric-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(8px);
+        border-radius: 20px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(241, 245, 249, 0.5);
+        border-left: 5px solid #f97316;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .metric-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+        background: white;
+    }
+
+    .metric-primary { border-left-color: #f97316; }
+    .metric-success { border-left-color: #fb923c; }
+    .metric-info { border-left-color: #f97316; }
+    .metric-warning { border-left-color: #ea580c; }
+
+    .metric-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .metric-primary .metric-icon { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .metric-success .metric-icon { background: linear-gradient(135deg, #fb923c, #f97316); }
+    .metric-info .metric-icon { background: linear-gradient(135deg, #ea580c, #c2410c); }
+    .metric-warning .metric-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+    .metric-content h3 {
+        font-size: 0.9rem;
+        color: #6b7280;
+        font-weight: 500;
+        margin: 0 0 6px 0;
+    }
+
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 6px;
+    }
+
+    .metric-unit {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #6b7280;
+    }
+
+    .metric-trend {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .metric-trend.positive { color: #10b981; }
+    .metric-trend.negative { color: #ef4444; }
+
+    /* Charts Grid */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 24px;
+        margin-bottom: 36px;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.02);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .chart-card:hover {
+        box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .chart-card.chart-large { grid-column: span 2; }
+    .chart-card.chart-wide { grid-column: span 2; }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .chart-header h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+    }
+
+    .chart-header h3 i {
+        color: #f97316;
+        font-size: 1.2rem;
+    }
+
+    .chart-legend {
+        display: flex;
+        gap: 16px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #4b5563;
+    }
+
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    .legend-dot.burned { background: #f97316; }
+    .legend-dot.consumed { background: #fb923c; }
+    .legend-dot.sleep { background: #ea580c; }
+
+    .chart-container {
+        position: relative;
+        height: 320px;
+        width: 100%;
+    }
+
+    /* Insights Section */
+    .insights-section {
+        background: white;
+        border-radius: 16px;
+        padding: 28px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .insights-section h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 24px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .insights-section h3 i { color: #f97316; }
+
+    .insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    .insight-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px;
+        border-radius: 12px;
+        background: #f9fafb;
+        border-left: 4px solid #f97316;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+
+    .insight-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+    }
+
+    .insight-card i {
+        font-size: 1.5rem;
+        color: #f97316;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .insight-card h4 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 6px 0;
+    }
+
+    .insight-card p {
+        font-size: 0.95rem;
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .insight-card.insight-positive {
+        border-left-color: #10b981;
+        background: #ecfdf5;
+    }
+    .insight-card.insight-positive i { color: #10b981; }
+
+    .insight-card.insight-warning {
+        border-left-color: #f59e0b;
+        background: #fffbeb;
+    }
+    .insight-card.insight-warning i { color: #f59e0b; }
+
+    .insight-card.insight-neutral {
+        border-left-color: #fb923c;
+        background: #fff7ed;
+    }
+    .insight-card.insight-neutral i { color: #fb923c; }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .charts-grid { grid-template-columns: 1fr; }
+        .chart-card.chart-large, .chart-card.chart-wide { grid-column: span 1; }
+        .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 576px) {
+        .metrics-grid { grid-template-columns: 1fr; }
+        .chart-container { height: 260px; }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<!-- Hidden element to safely store JSON data without breaking JS syntax highlighting/linting -->
+<div id="analytics-data" style="display: none;"
+    data-labels="{{ labels | default([]) | tojson | forceescape }}"
+    data-calories="{{ calories | default([]) | tojson | forceescape }}"
+    data-duration="{{ duration | default([]) | tojson | forceescape }}"
+    data-nutrition-protein="{{ nutrition_protein | default([]) | tojson | forceescape }}"
+    data-nutrition-carbs="{{ nutrition_carbs | default([]) | tojson | forceescape }}"
+    data-nutrition-fat="{{ nutrition_fat | default([]) | tojson | forceescape }}"
+    data-daily-labels="{{ daily_labels | default([]) | tojson | forceescape }}"
+    data-daily-burned="{{ daily_burned | default([]) | tojson | forceescape }}"
+    data-daily-consumed="{{ daily_consumed | default([]) | tojson | forceescape }}"
+    data-sleep-labels="{{ sleep_labels | default([]) | tojson | forceescape }}"
+    data-sleep-data="{{ sleep_data | default([]) | tojson | forceescape }}"
+    data-volume-labels="{{ volume_labels | default([]) | tojson | forceescape }}"
+    data-volume-data="{{ volume_data | default([]) | tojson | forceescape }}"
+    data-type-labels="{{ type_labels | default([]) | tojson | forceescape }}"
+    data-type-counts="{{ type_counts | default([]) | tojson | forceescape }}"
+    data-rpe-labels="{{ rpe_labels | default([]) | tojson | forceescape }}"
+    data-rpe-data="{{ rpe_data | default([]) | tojson | forceescape }}">
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('📊 Analytics page loaded');
+
+        // Read data securely from the DOM
+        const dataElem = document.getElementById('analytics-data');
+
+        const workoutLabels = JSON.parse(dataElem.dataset.labels || '[]');
+        const workoutCalories = JSON.parse(dataElem.dataset.calories || '[]');
+        const workoutDuration = JSON.parse(dataElem.dataset.duration || '[]');
+
+        const nutritionProtein = JSON.parse(dataElem.dataset.nutritionProtein || '[]');
+        const nutritionCarbs = JSON.parse(dataElem.dataset.nutritionCarbs || '[]');
+        const nutritionFat = JSON.parse(dataElem.dataset.nutritionFat || '[]');
+
+        const dailyLabels = JSON.parse(dataElem.dataset.dailyLabels || '[]');
+        const dailyBurned = JSON.parse(dataElem.dataset.dailyBurned || '[]');
+        const dailyConsumed = JSON.parse(dataElem.dataset.dailyConsumed || '[]');
+
+        const sleepLabels = JSON.parse(dataElem.dataset.sleepLabels || '[]');
+        const sleepData = JSON.parse(dataElem.dataset.sleepData || '[]');
+
+        // New MacroFactor-style data reads
+        const volumeLabels = JSON.parse(dataElem.dataset.volumeLabels || '[]');
+        const volumeData   = JSON.parse(dataElem.dataset.volumeData   || '[]');
+        const typeLabels   = JSON.parse(dataElem.dataset.typeLabels   || '[]');
+        const typeCounts   = JSON.parse(dataElem.dataset.typeCounts   || '[]');
+        const rpeLabels    = JSON.parse(dataElem.dataset.rpeLabels    || '[]');
+        const rpeData      = JSON.parse(dataElem.dataset.rpeData      || '[]');
+
+        // ... existing chart setup code ...
+
+        // Helper function
+        function safeChart(canvasId, config) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || typeof Chart === 'undefined') return null;
+            try {
+                return new Chart(canvas, config);
+            } catch (error) {
+                console.error(`Error creating chart ${canvasId}:`, error);
+                return null;
+            }
+        }
+
+        // Global Chart Details for a Professional Look
+        Chart.defaults.font.family = "'Inter', 'Segoe UI', -apple-system, sans-serif";
+        Chart.defaults.color = '#6b7280';
+        Chart.defaults.scale.grid.color = 'rgba(0, 0, 0, 0.04)';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(17, 24, 39, 0.9)';
+        Chart.defaults.plugins.tooltip.titleColor = '#fff';
+        Chart.defaults.plugins.tooltip.bodyColor = '#e5e7eb';
+        Chart.defaults.plugins.tooltip.padding = 12;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        Chart.defaults.plugins.tooltip.titleFont = { size: 14, weight: 'bold' };
+        Chart.defaults.plugins.tooltip.bodyFont = { size: 13 };
+
+        // 1. Calories Balance Chart
+        const balanceCtx = document.getElementById('balanceChart');
+        if (balanceCtx) {
+            const ctx1 = balanceCtx.getContext('2d');
+            let gradientBurned = ctx1.createLinearGradient(0, 0, 0, 300);
+            gradientBurned.addColorStop(0, 'rgba(249, 115, 22, 0.25)');
+            gradientBurned.addColorStop(1, 'rgba(249, 115, 22, 0.0)');
+            
+            let gradientConsumed = ctx1.createLinearGradient(0, 0, 0, 300);
+            gradientConsumed.addColorStop(0, 'rgba(251, 146, 60, 0.25)');
+            gradientConsumed.addColorStop(1, 'rgba(251, 146, 60, 0.0)');
+
+            safeChart('balanceChart', {
+                type: 'line',
+                data: {
+                    labels: dailyLabels.length > 0 ? dailyLabels : ['No Data'],
+                    datasets: [
+                        {
+                            label: 'Calories Burned',
+                            data: dailyBurned.length > 0 ? dailyBurned : [0],
+                            borderColor: '#f97316',
+                            backgroundColor: gradientBurned,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#f97316',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: '#f97316',
+                            pointHoverBorderColor: '#ffffff',
+                            pointHoverBorderWidth: 2
+                        },
+                        {
+                            label: 'Calories Consumed',
+                            data: dailyConsumed.length > 0 ? dailyConsumed : [0],
+                            borderColor: '#fb923c',
+                            backgroundColor: gradientConsumed,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#fb923c',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: '#fb923c',
+                            pointHoverBorderColor: '#ffffff',
+                            pointHoverBorderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y} kcal`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            border: { display: false },
+                            ticks: { callback: (value) => value + ' kcal' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            border: { display: false }
+                        }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            });
+        }
+
+        // 2. Workout Trends Chart
+        const workoutCtx = document.getElementById('workoutChart');
+        if (workoutCtx) {
+            const wCtx = workoutCtx.getContext('2d');
+            const gradientWorkout = wCtx.createLinearGradient(0, 0, 0, 300);
+            gradientWorkout.addColorStop(0, 'rgba(249, 115, 22, 0.9)');
+            gradientWorkout.addColorStop(1, 'rgba(249, 115, 22, 0.4)');
+
+            safeChart('workoutChart', {
+                type: 'bar',
+                data: {
+                    labels: workoutLabels.length > 0 ? workoutLabels : ['No Data'],
+                    datasets: [{
+                        label: 'Calories Burned',
+                        data: workoutCalories.length > 0 ? workoutCalories : [0],
+                        backgroundColor: gradientWorkout,
+                        borderColor: 'transparent',
+                        borderWidth: 0,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `Burned: ${ctx.parsed.y} kcal`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            border: { display: false }
+                        },
+                        x: {
+                            grid: { display: false },
+                            border: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. Nutrition Breakdown Chart
+        const nutritionCtx = document.getElementById('nutritionChart');
+        if (nutritionCtx) {
+            const proteinTotal = nutritionProtein.reduce((a, b) => a + (b || 0), 0) || 30;
+            const carbsTotal = nutritionCarbs.reduce((a, b) => a + (b || 0), 0) || 50;
+            const fatTotal = nutritionFat.reduce((a, b) => a + (b || 0), 0) || 20;
+
+            safeChart('nutritionChart', {
+                type: 'doughnut',
+                data: {
+                    labels: ['Protein', 'Carbs', 'Fat'],
+                    datasets: [{
+                        data: [proteinTotal, carbsTotal, fatTotal],
+                        backgroundColor: ['#f97316', '#fb923c', '#ea580c'],
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                        hoverOffset: 15,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    layout: { padding: 15 },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 25,
+                                font: { size: 12, family: "'Inter', sans-serif" },
+                                boxWidth: 10,
+                                boxHeight: 10
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = total > 0 ? Math.round((ctx.parsed / total) * 100) : 0;
+                                    return `${ctx.label}: ${ctx.parsed}g (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 4. Sleep Cycle Chart
+        const sleepCtx = document.getElementById('sleepChart');
+        if (sleepCtx) {
+            const sCtx = sleepCtx.getContext('2d');
+            const gradientSleep = sCtx.createLinearGradient(0, 0, 0, 400);
+            gradientSleep.addColorStop(0, 'rgba(249, 115, 22, 0.8)');
+            gradientSleep.addColorStop(1, 'rgba(249, 115, 22, 0.1)');
+
+            safeChart('sleepChart', {
+                type: 'bar',
+                data: {
+                    labels: sleepLabels.length > 0 ? sleepLabels : ['No Data'],
+                    datasets: [{
+                        label: 'Hours of Sleep',
+                        data: sleepData.length > 0 ? sleepData : [0],
+                        backgroundColor: gradientSleep,
+                        borderColor: '#f97316',
+                        borderWidth: 2,
+                        borderRadius: 12,
+                        borderSkipped: false,
+                        barPercentage: 0.5,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `Sleep: ${ctx.parsed.y} hours`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 12,
+                            border: { display: false },
+                            ticks: { stepSize: 2 }
+                        },
+                        x: {
+                            grid: { display: false },
+                            border: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 5. Training Volume Chart (NEW)
+        safeChart('volumeChart', {
+            type: 'bar',
+            data: {
+                labels: volumeLabels.length > 0 ? volumeLabels : ['No Data Yet'],
+                datasets: [{
+                    label: 'Volume (kg)',
+                    data: volumeData.length > 0 ? volumeData : [0],
+                    backgroundColor: 'rgba(249,115,22,0.8)',
+                    borderColor: '#f97316',
+                    borderWidth: 0,
+                    borderRadius: 10,
+                    borderSkipped: false,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `Volume: ${ctx.parsed.y.toLocaleString()} kg`
+                        }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, border: { display: false }, ticks: { callback: v => v + ' kg' } },
+                    x: { grid: { display: false }, border: { display: false } }
+                }
+            }
+        });
+
+        // 6. Workout Type Distribution (NEW)
+        const typeColors = ['#f97316','#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4'];
+        safeChart('typeChart', {
+            type: 'doughnut',
+            data: {
+                labels: typeLabels.length > 0 ? typeLabels : ['No Workouts Yet'],
+                datasets: [{
+                    data: typeCounts.length > 0 ? typeCounts : [1],
+                    backgroundColor: typeColors.slice(0, Math.max(typeLabels.length, 1)),
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverOffset: 12,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                layout: { padding: 10 },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { usePointStyle: true, padding: 20, font: { size: 12 }, boxWidth: 10 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct = total > 0 ? Math.round((ctx.parsed / total) * 100) : 0;
+                                return ` ${ctx.label}: ${ctx.parsed} sessions (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 7. RPE Trend Chart (NEW)
+        safeChart('rpeChart', {
+            type: 'line',
+            data: {
+                labels: rpeLabels.length > 0 ? rpeLabels : ['No Data Yet'],
+                datasets: [{
+                    label: 'RPE',
+                    data: rpeData.length > 0 ? rpeData : [0],
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139,92,246,0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#8b5cf6',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (ctx) => `RPE: ${ctx.parsed.y}/10` } }
+                },
+                scales: {
+                    y: { min: 1, max: 10, border: { display: false }, ticks: { stepSize: 1 } },
+                    x: { grid: { display: false }, border: { display: false } }
+                }
+            }
+        });
+
+        console.log('✅ All charts initialized with professional styling!');
+    });
+</script>
+{% endblock %}

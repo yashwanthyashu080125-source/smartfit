@@ -1,0 +1,135 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}Notifications & Reminders{% endblock %}
+
+{% block content %}
+<div class="notifications-container animate-fade-in">
+    <div class="row">
+        <!-- Send Notification Form -->
+        <div class="col-lg-5 mb-4">
+            <div class="table-container h-100">
+                <div class="section-header">
+                    <h3 class="section-title"><i class="fas fa-paper-plane"></i> Broadcast Message</h3>
+                    <p class="section-subtitle">Send targeted or global system alerts</p>
+                </div>
+
+                <form action="{{ url_for('admin.notifications') }}" method="POST" class="mt-4">
+                    <div class="form-group mb-3">
+                        <label class="form-label">Recipient</label>
+                        <select name="user_id" class="form-select">
+                            <option value="all">All Users (Global Broadcast)</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.name }} ({{ user.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label">Notification Type</label>
+                        <div class="d-flex gap-2">
+                            <div class="flex-grow-1">
+                                <input type="radio" name="type" value="info" id="type_info" class="btn-check" checked>
+                                <label class="btn btn-outline-info w-100" for="type_info">Info</label>
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="radio" name="type" value="success" id="type_success" class="btn-check">
+                                <label class="btn btn-outline-success w-100" for="type_success">Success</label>
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="radio" name="type" value="warning" id="type_warning" class="btn-check">
+                                <label class="btn btn-outline-warning w-100" for="type_warning">Alert</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Weekly Workout Challenge" required>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label">Message Content</label>
+                        <textarea name="message" class="form-control" rows="5" placeholder="Enter your motivational nudge or system update..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-paper-plane me-2"></i> Send Notification
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notification History -->
+        <div class="col-lg-7 mb-4">
+            <div class="table-container h-100 animate-slide-up">
+                <div class="section-header mb-4">
+                    <h3 class="section-title"><i class="fas fa-history"></i> Recent Alerts</h3>
+                    <p class="section-subtitle">History of sent reminders and system nudges</p>
+                </div>
+
+                <div class="notification-list">
+                    {% for notif in notifications %}
+                    <div class="notif-item p-3 border-bottom position-relative">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="d-flex gap-3">
+                                <div class="notif-icon-box {{ notif.type }}">
+                                    <i class="fas {% if notif.type == 'warning' %}fa-exclamation-triangle{% elif notif.type == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1 font-weight-bold" style="font-size: 15px;">{{ notif.title }}</h5>
+                                    <p class="small text-muted mb-2">{{ notif.message }}</p>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="small badge bg-light text-dark">
+                                            <i class="fas fa-user small me-1"></i> 
+                                            {{ notif.user.name if notif.user else 'Global Broadcast' }}
+                                        </span>
+                                        <span class="small text-muted">
+                                            <i class="fas fa-clock small me-1"></i> 
+                                            {{ notif.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <form action="{{ url_for('admin.delete_notification', notif_id=notif.id) }}" method="POST" onsubmit="return confirm('Delete this record?')">
+                                <button type="submit" class="btn-icon btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash small"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-bell-slash fa-3x mb-3 text-muted"></i>
+                        <p>No notification history found.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .notif-icon-box {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .notif-icon-box.info { background: #e6f7ff; color: #0096c7; }
+    .notif-icon-box.success { background: #e6fff3; color: #00c896; }
+    .notif-icon-box.warning { background: #fffbe6; color: #faad14; }
+    .notif-icon-box.danger { background: #fff1f0; color: #f5222d; }
+    
+    .btn-check:checked + .btn-outline-info { background-color: #0096c7; color: white; }
+    .btn-check:checked + .btn-outline-success { background-color: #00c896; color: white; }
+    .btn-check:checked + .btn-outline-warning { background-color: #faad14; color: white; }
+    
+    .notif-item:last-child { border-bottom: none !important; }
+    .notif-item:hover { background: #fafafa; }
+</style>
+{% endblock %}

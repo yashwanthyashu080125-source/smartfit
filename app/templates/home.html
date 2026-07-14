@@ -1,0 +1,782 @@
+{% extends "base.html" %}
+{% block title %}SmartFit — Intelligent Health Platform{% endblock %}
+
+{% block head %}
+<style>
+    :root {
+        --orange: #f97316;
+        --orange-dark: #ea580c;
+        --orange-glow: rgba(249, 115, 22, 0.18);
+        --surface: rgba(249, 115, 22, 0.04);
+        --border: rgba(0, 0, 0, 0.07);
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+    }
+
+    /* CANVAS PARTICLES */
+    #particle-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+    /* HERO */
+    .hero-section {
+        position: relative;
+        z-index: 2;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 100px 40px 80px;
+        overflow: hidden;
+        background: #0f172a;
+    }
+
+    .hero-video-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(2px);
+        z-index: 0;
+    }
+
+    .hero-glow-left {
+        position: absolute;
+        top: 10%;
+        left: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+        animation: glowPulse 6s ease-in-out infinite alternate;
+    }
+
+    .hero-glow-right {
+        position: absolute;
+        bottom: 0;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    @keyframes glowPulse {
+        0% {
+            transform: scale(1);
+            opacity: 0.8;
+        }
+
+        100% {
+            transform: scale(1.15);
+            opacity: 1;
+        }
+    }
+
+    .hero-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-content {
+        text-align: center;
+        position: relative;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 2;
+    }
+
+    .hero-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(249, 115, 22, 0.12);
+        border: 1px solid rgba(249, 115, 22, 0.3);
+        color: var(--orange);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        padding: 6px 16px;
+        border-radius: 100px;
+        margin-bottom: 28px;
+        animation: fadeSlideDown 0.8s ease both;
+    }
+
+    @keyframes fadeSlideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-title {
+        font-size: clamp(2.4rem, 5vw, 4.2rem);
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -2px;
+        color: var(--text-primary);
+        margin-bottom: 24px;
+        animation: fadeSlideUp 0.9s 0.1s ease both;
+    }
+
+    .hero-title .accent-text {
+        background: linear-gradient(135deg, var(--orange), #fbbf24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    @keyframes fadeSlideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-desc {
+        font-size: 1.15rem;
+        color: var(--text-secondary);
+        line-height: 1.8;
+        margin-bottom: 40px;
+        max-width: 650px;
+        animation: fadeSlideUp 0.9s 0.2s ease both;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+        animation: fadeSlideUp 0.9s 0.3s ease both;
+    }
+
+    .btn-hero-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+        color: white;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 14px 28px;
+        border-radius: 14px;
+        box-shadow: 0 8px 30px var(--orange-glow);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-hero-primary::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .btn-hero-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 16px 40px var(--orange-glow);
+    }
+
+    .btn-hero-primary:hover::before {
+        opacity: 1;
+    }
+
+    .btn-hero-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface);
+        color: var(--text-primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 14px 28px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+    }
+
+    .btn-hero-secondary:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    /* HERO VISUAL IMAGE */
+    .hero-visual {
+        animation: fadeSlideUp 1s 0.2s ease both;
+        display: flex;
+        justify-content: center;
+    }
+
+    .hero-image-display {
+        width: 100%;
+        max-width: 550px;
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .hcard-metric {
+        color: #0f172a;
+    }
+
+    .hcard-sub-label {
+        color: #64748b;
+    }
+
+    .hcard-metric {
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: var(--text-primary);
+        letter-spacing: -2px;
+        line-height: 1;
+    }
+
+    .hcard-sub-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 8px;
+    }
+
+    .metric-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+        margin-top: 24px;
+    }
+
+    .metric-box {
+        background: rgba(249, 115, 22, 0.06);
+        border-radius: 14px;
+        padding: 16px;
+        text-align: center;
+    }
+
+    .metric-box .val {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .metric-box .lbl {
+        font-size: 0.7rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+    }
+
+    .progress-bar-wrap {
+        margin-top: 20px;
+        background: rgba(0, 0, 0, 0.07);
+        border-radius: 100px;
+        height: 8px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 100px;
+        background: linear-gradient(90deg, var(--orange), #fbbf24);
+        animation: fillBar 2s 0.5s ease-out both;
+    }
+
+    @keyframes fillBar {
+        from {
+            width: 0;
+        }
+
+        to {
+            width: 73%;
+        }
+    }
+
+    /* STATS BAND */
+    .stats-band {
+        position: relative;
+        z-index: 1;
+        padding: 60px 40px;
+        border-top: 1px solid rgba(0, 0, 0, 0.07);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+        background: #f8fafc;
+    }
+
+    .stats-band-inner {
+        max-width: 1280px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 40px;
+    }
+
+    .stat-block {
+        text-align: center;
+        animation: fadeSlideUp 0.8s ease both;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 900;
+        letter-spacing: -2px;
+        background: linear-gradient(135deg, var(--orange), #fbbf24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-top: 8px;
+        font-weight: 500;
+    }
+
+    /* FEATURES */
+    .features-section {
+        position: relative;
+        z-index: 1;
+        padding: 100px 40px;
+    }
+
+    .section-header {
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto 70px;
+    }
+
+    .section-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(249, 115, 22, 0.1);
+        border: 1px solid rgba(249, 115, 22, 0.25);
+        color: var(--orange);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        padding: 5px 14px;
+        border-radius: 100px;
+        margin-bottom: 20px;
+    }
+
+    .section-title {
+        font-size: clamp(1.8rem, 4vw, 3rem);
+        font-weight: 900;
+        letter-spacing: -1.5px;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+        line-height: 1.15;
+    }
+
+    .section-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-secondary);
+        line-height: 1.7;
+    }
+
+    .features-grid {
+        max-width: 1280px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+    }
+
+    .feat-card {
+        position: relative;
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.07);
+        border-radius: 24px;
+        padding: 36px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        overflow: hidden;
+        cursor: default;
+        transform-style: preserve-3d;
+    }
+
+    .feat-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.06), transparent 60%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        border-radius: 24px;
+    }
+
+    .feat-card:hover {
+        border-color: rgba(249, 115, 22, 0.35);
+        transform: translateY(-10px) rotateX(2deg) rotateY(-2deg);
+        box-shadow: 0 24px 50px rgba(0, 0, 0, 0.1), 0 0 30px rgba(249, 115, 22, 0.1);
+    }
+
+    .feat-card:hover::before {
+        opacity: 1;
+    }
+
+    .feat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 24px;
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(249, 115, 22, 0.05));
+        border: 1px solid rgba(249, 115, 22, 0.2);
+        color: var(--orange);
+        transition: all 0.4s ease;
+    }
+
+    .feat-card:hover .feat-icon {
+        transform: translateZ(20px) scale(1.1);
+        box-shadow: 0 8px 25px var(--orange-glow);
+    }
+
+    .feat-card h4 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        letter-spacing: -0.3px;
+    }
+
+    .feat-card p {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        line-height: 1.7;
+    }
+
+    .feat-arrow {
+        position: absolute;
+        bottom: 28px;
+        right: 28px;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(249, 115, 22, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--orange);
+        font-size: 0.8rem;
+        opacity: 0;
+        transform: translate(4px, 4px);
+        transition: all 0.3s ease;
+    }
+
+    .feat-card:hover .feat-arrow {
+        opacity: 1;
+        transform: translate(0, 0);
+    }
+
+    /* CTA SECTION */
+    .cta-section {
+        position: relative;
+        z-index: 1;
+        padding: 80px 40px;
+        text-align: center;
+    }
+
+    .cta-box {
+        max-width: 800px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #fff7ed, #ffffff);
+        border: 1px solid rgba(249, 115, 22, 0.2);
+        border-radius: 32px;
+        padding: 80px 60px;
+        box-shadow: 0 20px 60px rgba(249, 115, 22, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-box::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(from 180deg at 50% 50%, transparent 0deg, rgba(249, 115, 22, 0.04) 60deg, transparent 120deg);
+        animation: spin 20s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .cta-box h2 {
+        font-size: 2.5rem;
+        font-weight: 900;
+        letter-spacing: -1.5px;
+        color: #0f172a;
+        margin-bottom: 16px;
+        position: relative;
+    }
+
+    .cta-box p {
+        color: var(--text-secondary);
+        font-size: 1.05rem;
+        margin-bottom: 40px;
+        line-height: 1.7;
+        position: relative;
+    }
+
+    @media (max-width: 768px) {
+        .hero-inner {
+            max-width: 100%;
+        }
+
+        .stats-band-inner {
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .cta-box {
+            padding: 50px 30px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<canvas id="particle-canvas"></canvas>
+
+<!-- Hero -->
+<section class="hero-section">
+    <video class="hero-video-bg" autoplay muted loop playsinline>
+        <source src="{{ url_for('static', filename='video/home.mp4.mp4') }}" type="video/mp4">
+    </video>
+    <div class="hero-glow-left"></div>
+    <div class="hero-glow-right"></div>
+    <div class="hero-inner">
+        <div class="hero-content">
+            <div class="hero-label"><i class="fas fa-bolt"></i> Next-Gen Fitness Intelligence</div>
+            <h1 class="hero-title">
+                Elevate Your<br>
+                <span class="accent-text">Performance.</span><br>
+                Master Your Health.
+            </h1>
+            <p class="hero-desc">
+                SmartFit combines real-time biometric analytics, precision nutrition tracking,
+                and adaptive workout planning into one unified command center built for peak performers.
+            </p>
+            <div class="hero-actions">
+                <a href="{{ url_for('auth.register') }}" class="btn-hero-primary">
+                    <i class="fas fa-rocket"></i> Start Free Today
+                </a>
+                <a href="{{ url_for('features') }}" class="btn-hero-secondary">
+                    <i class="fas fa-play-circle"></i> See Features
+                </a>
+            </div>
+        </div>
+
+
+    </div>
+</section>
+
+<!-- Stats Band -->
+<section class="stats-band">
+    <div class="stats-band-inner">
+        <div class="stat-block reveal">
+            <div class="stat-number" data-target="12000">12k+</div>
+            <div class="stat-label">Active Users</div>
+        </div>
+        <div class="stat-block reveal" style="transition-delay:0.1s">
+            <div class="stat-number" data-target="95">95%</div>
+            <div class="stat-label">Goal Achievement Rate</div>
+        </div>
+        <div class="stat-block reveal" style="transition-delay:0.2s">
+            <div class="stat-number">500k+</div>
+            <div class="stat-label">Workouts Logged</div>
+        </div>
+        <div class="stat-block reveal" style="transition-delay:0.3s">
+            <div class="stat-number">#1</div>
+            <div class="stat-label">Health Analytics Platform</div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="features-section">
+    <div class="section-header reveal">
+        <div class="section-tag"><i class="fas fa-star"></i> Core Platform</div>
+        <h2 class="section-title">Built for <span class="accent-text">High Performers</span></h2>
+        <p class="section-subtitle">Every tool you need to master your body, track your progress, and exceed your
+            limits.</p>
+    </div>
+
+    <div class="features-grid">
+        <div class="feat-card reveal" style="transition-delay:0.05s">
+            <div class="feat-icon"><i class="fas fa-chart-line"></i></div>
+            <h4>Real-Time Analytics</h4>
+            <p>Live biometric tracking with BMI, BMR, and TDEE calculations powered by validated physiological formulas.
+            </p>
+            <div class="feat-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+        <div class="feat-card reveal" style="transition-delay:0.1s">
+            <div class="feat-icon"><i class="fas fa-utensils"></i></div>
+            <h4>Macro Intelligence</h4>
+            <p>Smart nutrition logging with adaptive calorie targeting based on your unique activity profile and
+                physical goals.</p>
+            <div class="feat-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+        <div class="feat-card reveal" style="transition-delay:0.15s">
+            <div class="feat-icon"><i class="fas fa-dumbbell"></i></div>
+            <h4>Workout Optimization</h4>
+            <p>Personalized training plans with progressive overload monitoring and admin-assigned routines tailored to
+                your goals.</p>
+            <div class="feat-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+        <div class="feat-card reveal" style="transition-delay:0.2s">
+            <div class="feat-icon"><i class="fas fa-moon"></i></div>
+            <h4>Sleep Architecture</h4>
+            <p>Deep sleep phase analysis to optimize recovery and enhance both cognitive and physical performance.</p>
+            <div class="feat-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+        <div class="feat-card reveal" style="transition-delay:0.25s">
+            <div class="feat-icon"><i class="fas fa-bullseye"></i></div>
+            <h4>Goal Engine</h4>
+            <p>Dynamic goal setting with intelligent milestone tracking and automated progress notifications.</p>
+            <div class="feat-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+        <div class="feat-card reveal" style="transition-delay:0.3s">
+            <div class="feat-icon"><i class="fas fa-shield-alt"></i></div>
+            <h4>Secure & Private</h4>
+            <p>Role-based authentication with end-to-end encrypted data and complete user data isolation protocols.</p>
+            <div class="feat-arrow"><i class="fas fa-arrow-right"></i></div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="cta-box reveal">
+        <h2>Ready to <span class="accent-text">Transform?</span></h2>
+        <p>Join thousands of athletes and health-conscious individuals already using SmartFit to reach their peak
+            potential.</p>
+        <a href="{{ url_for('auth.register') }}" class="btn-hero-primary"
+            style="position:relative; display:inline-flex;">
+            <i class="fas fa-rocket"></i> Start Your Journey — It's Free
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Particle system
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.3;
+            this.speedX = (Math.random() - 0.5) * 0.4;
+            this.speedY = (Math.random() - 0.5) * 0.4;
+            this.opacity = Math.random() * 0.4 + 0.1;
+        }
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(249,115,22,${this.opacity * 0.7})`;
+            ctx.fill();
+        }
+    }
+
+    for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+    function drawLines() {
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(249,115,22,${0.06 * (1 - dist / 120)})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        drawLines();
+        requestAnimationFrame(animate);
+    }
+    animate();
+
+    // Tilt effect removed as hcards were replaced by background image
+</script>
+{% endblock %}

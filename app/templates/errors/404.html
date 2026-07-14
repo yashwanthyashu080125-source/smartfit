@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Not Found{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <h1 class="display-1 fw-bold text-primary">404</h1>
+    <h2 class="mb-4">Page Not Found</h2>
+    <p class="lead mb-5">The neural path you're looking for doesn't exist.</p>
+    <a href="{{ url_for('splash') }}" class="btn btn-primary px-4 py-2" style="border-radius: 12px;">Back to Reality</a>
+</div>
+{% endblock %}

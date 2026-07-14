@@ -1,0 +1,389 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <div class="page-header-custom mb-4">
+        <div class="header-content">
+            <h1 class="page-title-custom">⚙️ Settings</h1>
+            <p class="page-subtitle-custom">Customize your SmartFit experience</p>
+        </div>
+    </div>
+
+    <form method="POST" class="settings-form">
+        <div class="row g-4">
+            <!-- Left Column: Navigation (Desktop) / Quick Links -->
+            <div class="col-lg-4">
+                <div class="settings-nav-card">
+                    <div class="nav flex-column nav-pills settings-pills" id="v-pills-tab" role="tablist">
+                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#account" type="button"><i class="fas fa-user-circle"></i> Account Info</button>
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#preferences" type="button"><i class="fas fa-sliders-h"></i> Preferences</button>
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#security" type="button"><i class="fas fa-shield-alt"></i> Privacy & Security</button>
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#notifications" type="button"><i class="fas fa-bell"></i> Notifications</button>
+                    </div>
+                </div>
+
+                <div class="support-card mt-4">
+                    <h5>Need Help?</h5>
+                    <p>Contact our support team for assistance.</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm w-100">Get Support</a>
+                </div>
+            </div>
+
+            <!-- Right Column: Settings Content -->
+            <div class="col-lg-8">
+                <div class="tab-content settings-tab-content" id="v-pills-tabContent">
+                    
+                    <!-- Account Section -->
+                    <div class="tab-pane fade show active" id="account" role="tabpanel">
+                        <div class="settings-card">
+                            <h3 class="settings-section-title">Account Information</h3>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" name="name" class="form-control-pro" value="{{ current_user.name }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control-pro" value="{{ current_user.email }}" disabled>
+                                    <small class="text-muted">Email cannot be changed.</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Mobile Number</label>
+                                    <input type="text" name="mobile_number" class="form-control-pro" value="{{ current_user.mobile_number or '' }}" placeholder="Enter phone number">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Age</label>
+                                    <input type="number" name="age" class="form-control-pro" value="{{ current_user.age or '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preferences Section -->
+                    <div class="tab-pane fade" id="preferences" role="tabpanel">
+                        <div class="settings-card">
+                            <h3 class="settings-section-title">Fitness Preferences</h3>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Gender</label>
+                                    <select name="gender" class="form-select-pro">
+                                        <option value="male" {% if current_user.gender == 'male' %}selected{% endif %}>Male</option>
+                                        <option value="female" {% if current_user.gender == 'female' %}selected{% endif %}>Female</option>
+                                        <option value="other" {% if current_user.gender == 'other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Default Activity Level</label>
+                                    <select name="activity_level" class="form-select-pro">
+                                        <option value="sedentary" {% if current_user.activity_level == 'sedentary' %}selected{% endif %}>Sedentary</option>
+                                        <option value="light" {% if current_user.activity_level == 'light' %}selected{% endif %}>Lightly Active</option>
+                                        <option value="moderate" {% if current_user.activity_level == 'moderate' %}selected{% endif %}>Moderately Active</option>
+                                        <option value="active" {% if current_user.activity_level == 'active' %}selected{% endif %}>Very Active</option>
+                                        <option value="very_active" {% if current_user.activity_level == 'very_active' %}selected{% endif %}>Extremely Active</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Height (cm)</label>
+                                    <input type="number" step="0.1" name="height" class="form-control-pro" value="{{ current_user.height or '' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Weight (kg)</label>
+                                    <input type="number" step="0.1" name="weight" class="form-control-pro" value="{{ current_user.weight or '' }}">
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Measurement System</label>
+                                    <div class="radio-group-pro">
+                                        <label class="radio-pill">
+                                            <input type="radio" name="preferred_units" value="metric" {% if current_user.preferred_units == 'metric' %}checked{% endif %}>
+                                            <span class="pill-content">Metric (kg, cm)</span>
+                                        </label>
+                                        <label class="radio-pill">
+                                            <input type="radio" name="preferred_units" value="imperial" {% if current_user.preferred_units == 'imperial' %}checked{% endif %}>
+                                            <span class="pill-content">Imperial (lbs, ft)</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Section -->
+                    <div class="tab-pane fade" id="security" role="tabpanel">
+                        <div class="settings-card">
+                            <h3 class="settings-section-title">Privacy & Security</h3>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <h5 class="setting-name">Private Profile</h5>
+                                    <p class="setting-desc">Keep your progress and photos hidden from other users.</p>
+                                </div>
+                                <div class="setting-action">
+                                    <div class="form-check form-switch custom-switch">
+                                        <input class="form-check-input" type="checkbox" name="profile_private" {% if current_user.profile_private %}checked{% endif %}>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr class="my-4">
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <h5 class="setting-name">Two-Factor Authentication</h5>
+                                    <p class="setting-desc">Add an extra layer of security via OTP.</p>
+                                </div>
+                                <div class="setting-action">
+                                    <span class="badge bg-success-subtle text-success p-2">Always On</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications Section -->
+                    <div class="tab-pane fade" id="notifications" role="tabpanel">
+                        <div class="settings-card">
+                            <h3 class="settings-section-title">Notification Settings</h3>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <h5 class="setting-name">Enable Notifications</h5>
+                                    <p class="setting-desc">Receive updates about your workouts and diet plans.</p>
+                                </div>
+                                <div class="setting-action">
+                                    <div class="form-check form-switch custom-switch">
+                                        <input class="form-check-input" type="checkbox" name="notifications_enabled" {% if current_user.notifications_enabled %}checked{% endif %}>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="settings-footer mt-4">
+                    <button type="submit" class="btn btn-save-settings">
+                        <i class="fas fa-check-circle me-2"></i> Save Changes
+                    </button>
+                    <button type="reset" class="btn btn-reset-settings">Reset</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    :root {
+        --s-primary: #3b82f6;
+        --s-primary-soft: #eff6ff;
+        --s-text: #1e293b;
+        --s-text-muted: #64748b;
+        --s-card-bg: #ffffff;
+        --s-border: #e2e8f0;
+    }
+
+    .settings-container {
+        padding-bottom: 40px;
+    }
+
+    /* ── Sidebar Nav ── */
+    .settings-nav-card {
+        background: var(--s-card-bg);
+        border-radius: 20px;
+        padding: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        border: 1px solid var(--s-border);
+    }
+
+    .settings-pills .nav-link {
+        color: var(--s-text-muted);
+        font-weight: 600;
+        padding: 14px 18px;
+        border-radius: 12px;
+        margin-bottom: 4px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s;
+        border: none;
+        background: transparent;
+        width: 100%;
+    }
+
+    .settings-pills .nav-link i {
+        font-size: 1.1rem;
+        width: 24px;
+        text-align: center;
+    }
+
+    .settings-pills .nav-link.active {
+        background: var(--s-primary-soft);
+        color: var(--s-primary);
+    }
+
+    .settings-pills .nav-link:not(.active):hover {
+        background: #f8fafc;
+        color: var(--s-text);
+    }
+
+    /* ── Content Card ── */
+    .settings-card {
+        background: var(--s-card-bg);
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        border: 1px solid var(--s-border);
+        min-height: 400px;
+    }
+
+    .settings-section-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--s-text);
+        margin-bottom: 24px;
+    }
+
+    /* ── Form Elements ── */
+    .form-control-pro, .form-select-pro {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1.5px solid var(--s-border);
+        background: #f8fafc;
+        color: var(--s-text);
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .form-control-pro:focus, .form-select-pro:focus {
+        border-color: var(--s-primary);
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+
+    .input-group-pro {
+        display: flex;
+        align-items: center;
+        background: #f8fafc;
+        border: 1.5px solid var(--s-border);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .input-icon {
+        padding: 0 16px;
+        color: var(--s-text-muted);
+    }
+
+    .input-group-pro .form-control-pro {
+        border: none;
+        background: transparent;
+    }
+
+    /* ── Radio Pills ── */
+    .radio-group-pro {
+        display: flex;
+        gap: 12px;
+    }
+
+    .radio-pill {
+        flex: 1;
+        cursor: pointer;
+    }
+
+    .radio-pill input {
+        display: none;
+    }
+
+    .pill-content {
+        display: block;
+        padding: 12px;
+        text-align: center;
+        background: #f8fafc;
+        border: 1.5px solid var(--s-border);
+        border-radius: 12px;
+        font-weight: 600;
+        color: var(--s-text-muted);
+        transition: all 0.2s;
+    }
+
+    .radio-pill input:checked + .pill-content {
+        background: var(--s-primary-soft);
+        color: var(--s-primary);
+        border-color: var(--s-primary);
+    }
+
+    /* ── Switches ── */
+    .custom-switch .form-check-input {
+        width: 44px;
+        height: 24px;
+        cursor: pointer;
+    }
+
+    .custom-switch .form-check-input:checked {
+        background-color: var(--s-primary);
+        border-color: var(--s-primary);
+    }
+
+    .setting-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .setting-name {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 4px;
+        color: var(--s-text);
+    }
+
+    .setting-desc {
+        color: var(--s-text-muted);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    /* ── Action Buttons ── */
+    .btn-save-settings {
+        background: var(--s-text);
+        color: #fff;
+        padding: 14px 30px;
+        border-radius: 14px;
+        font-weight: 700;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-save-settings:hover {
+        background: #000;
+        transform: translateY(-2px);
+        color: #fff;
+    }
+
+    .btn-reset-settings {
+        background: transparent;
+        color: var(--s-text-muted);
+        font-weight: 600;
+        border: none;
+        margin-left: 15px;
+    }
+
+    .support-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 20px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid var(--s-border);
+    }
+
+    .support-card h5 {
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .support-card p {
+        font-size: 0.85rem;
+        color: var(--s-text-muted);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,504 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% block title %}
+Dashboard - SmartFit
+{% endblock %}
+
+{% block content %}
+
+<div class="hero-dash-card animate-scale">
+  <div class="hero-dash-content">
+    <h1 class="hero-dash-title">Welcome back, {{ user.name }} 👋</h1>
+    <p class="hero-dash-subtitle">
+      You've completed 85% of your weekly goals. Keep pushing towards your health targets!
+    </p>
+  </div>
+</div>
+
+<div class="stats-grid">
+
+  <div class="stat-card animate-up" style="animation-delay: 0.1s">
+    <div class="stat-header">
+      <span class="stat-title">Current BMI</span>
+      <div class="stat-icon orange"><i class="fas fa-weight"></i></div>
+    </div>
+    <div class="stat-value">{{ bmi if bmi else "N/A" }}</div>
+    <div class="stat-change"><i class="fas fa-heartbeat"></i> Health Status</div>
+  </div>
+
+  <div class="stat-card animate-up" style="animation-delay: 0.2s">
+    <div class="stat-header">
+      <span class="stat-title">Calories Burned</span>
+      <div class="stat-icon green"><i class="fas fa-fire"></i></div>
+    </div>
+    <div class="stat-value">{{ calories_burned }}</div>
+    <div class="stat-change"><i class="fas fa-arrow-up"></i> 12% This week</div>
+  </div>
+
+  <div class="stat-card animate-up" style="animation-delay: 0.3s">
+    <div class="stat-header">
+      <span class="stat-title">Workouts</span>
+      <div class="stat-icon blue"><i class="fas fa-dumbbell"></i></div>
+    </div>
+    <div class="stat-value">{{ workouts_this_week }}</div>
+    <div class="stat-change"><i class="fas fa-check"></i> 3 completed</div>
+  </div>
+
+  <div class="stat-card animate-up" style="animation-delay: 0.4s">
+    <div class="stat-header">
+      <span class="stat-title">Today's Calories</span>
+      <div class="stat-icon purple"><i class="fas fa-utensils"></i></div>
+    </div>
+    <div class="stat-value">{{ today_calories }}</div>
+    <div class="stat-change"><i class="fas fa-chart-bar"></i> {{ calorie_pct }}% of goal</div>
+  </div>
+
+</div>
+
+<div class="content-section animate-up" style="animation-delay: 0.5s">
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="sleep-tracker-card h-100">
+        <div class="card-header-pro">
+          <h3><i class="fas fa-moon"></i> Sleep Analysis</h3>
+          <p>Optimizing your recovery through data</p>
+        </div>
+        <div class="sleep-display">
+          <div class="sleep-circle">
+            <span id="sleepValue">8.0</span>
+            <small>hrs</small>
+          </div>
+          <div class="sleep-animation" id="sleepStars"></div>
+        </div>
+        <form action="{{ url_for('dashboard.log_sleep') }}" method="POST" class="sleep-form px-4">
+          <div class="range-container mb-4 position-relative">
+            <input type="range" name="hours" id="sleepSlider" class="custom-range" min="0" max="16" step="0.5" value="8" oninput="updateSleepValue(this.value)">
+            <div id="sleepTooltip" class="sleep-tooltip">Excellent! 😴</div>
+          </div>
+          <button type="submit" class="btn btn-sleep-log w-100">
+            <i class="fas fa-save me-2"></i> Update Sleep Log
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <div class="col-lg-5">
+      <div class="daily-info-card h-100">
+        <div class="card-header-pro">
+          <h3><i class="fas fa-bolt"></i> Quick Insights</h3>
+        </div>
+        <div class="tip-content">
+          <div class="mb-4">
+            <p class="mb-2" style="font-size: 0.9rem; color: #64748b; font-style: normal; font-weight: 600;">DAILY MOTIVATION</p>
+            <p>"Success is the sum of small efforts, repeated day-in and day-out."</p>
+          </div>
+          <div class="p-3 bg-light rounded-4 mb-3">
+            <span class="tip-category mb-2 d-inline-block">Pro Tip</span>
+            <p class="small text-muted mb-0">Drinking 500ml of water right after waking up boosts your metabolism by 24% for 90 minutes.</p>
+          </div>
+          <div id="sleepInsight" class="p-3 rounded-4 animate-scale" style="background: #f0f9ff; border: 1px solid #bae6fd; display: none;">
+            <p class="mb-1" style="font-size: 0.85rem; color: #0369a1; font-weight: 700; text-transform: uppercase;">SLEEP INSIGHT</p>
+            <p id="sleepInsightText" class="small mb-0 text-dark fw-medium"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<style>
+  .sleep-tracker-card, .daily-info-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    height: 100%;
+    border: 1px solid #f1f5f9;
+  }
+
+  .card-header-pro h3 {
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-header-pro h3 i { color: #8b5cf6; }
+
+  .card-header-pro p {
+    color: #64748b;
+    font-size: 0.9rem;
+  }
+
+  .sleep-display {
+    position: relative;
+    padding: 40px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .sleep-circle {
+    width: 140px;
+    height: 140px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: 0 15px 35px rgba(139, 92, 246, 0.3);
+    z-index: 2;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .sleep-circle span {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .sleep-circle small {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    font-weight: 600;
+  }
+
+  .custom-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .custom-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: #8b5cf6;
+    border: 4px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+
+  .btn-sleep-log {
+    background: #1e293b;
+    color: #fff;
+    border-radius: 14px;
+    padding: 12px;
+    font-weight: 700;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-sleep-log:hover {
+    background: #000;
+    transform: translateY(-2px);
+  }
+
+  .tip-content {
+    padding: 20px 0;
+  }
+
+  .tip-content p {
+    font-size: 1.1rem;
+    font-style: italic;
+    color: #475569;
+    line-height: 1.6;
+  }
+
+  .tip-category {
+    background: #f1f5f9;
+    color: #64748b;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  /* Star Animation */
+  .sleep-animation {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+  }
+
+  .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0;
+    animation: twinkle 2s infinite ease-in-out;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 0.7; transform: scale(1.2); }
+  }
+
+  .btn-orange-gradient {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    border: none;
+    box-shadow: 0 4px 10px rgba(249, 115, 22, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .btn-orange-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(249, 115, 22, 0.3);
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  }
+  .sleep-tooltip {
+    position: absolute;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    background: #1e293b;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10;
+  }
+
+  .sleep-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #1e293b;
+  }
+
+  .range-container:hover .sleep-tooltip, .custom-range:active ~ .sleep-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+</style>
+
+{% endblock %}
+
+{% block modals %}
+<!-- Today's Plan Modal -->
+<div class="modal fade" id="todayPlanModal" tabindex="-1" aria-labelledby="todayPlanModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content"
+      style="border-radius: 16px; border: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+      <div class="modal-header text-white"
+        style="border-bottom: none; background: linear-gradient(135deg, #f97316, #fb923c);">
+        <h5 class="modal-title fw-bold" id="todayPlanModalLabel">
+          <i class="fas fa-calendar-day me-2"></i> Your Plan for {{ today_day_str }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+
+        <div class="mb-4">
+          <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.85rem;"><i class="fas fa-dumbbell"
+              style="color: #f97316;"></i> Workout Plan</h6>
+          {% if today_workout_plans %}
+          <ul class="list-group list-group-flush mb-0">
+            {% for plan in today_workout_plans %}
+            <li class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center gap-3">
+                <div class="text-end me-3">
+                  <span class="fw-semibold d-block text-dark">{{ plan.workout_name }}</span>
+                  <small class="text-muted">{{ plan.duration }} min • {{ plan.calories_to_burn or 0 }} kcal</small>
+                </div>
+                {% if plan.status == 'Pending' %}
+                <form action="{{ url_for('dashboard.complete_workout_plan', plan_id=plan.id) }}" method="POST">
+                  <button type="submit" class="btn btn-sm btn-orange-gradient text-white rounded-pill px-3">
+                    <i class="fas fa-check me-1"></i> Complete
+                  </button>
+                </form>
+                {% else %}
+                <span class="badge rounded-pill bg-success px-3 py-2">
+                  <i class="fas fa-check-double me-1"></i> Done
+                </span>
+                {% endif %}
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="alert alert-light border text-center py-2 mb-0 text-muted" style="border-radius: 10px;">
+            <i class="fas fa-bed text-muted mb-1 d-block fs-5"></i>
+            No workouts scheduled for today. Rest up!
+          </div>
+          {% endif %}
+        </div>
+
+        <div>
+          <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.85rem;"><i
+              class="fas fa-utensils text-success me-2"></i> Nutrition Target</h6>
+          <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 mb-3">
+            <div>
+              <span class="d-block text-muted small fw-medium">Current Intake</span>
+              <span class="fw-bold fs-4 text-dark">{{ today_calories }} <span
+                  class="fs-6 fw-normal text-muted">kcal</span></span>
+            </div>
+            <div class="text-end">
+              <span class="d-block text-muted small fw-medium">Daily Goal</span>
+              <span class="fw-bold fs-5 text-dark">2000 <span class="fs-6 fw-normal text-muted">kcal</span></span>
+            </div>
+          </div>
+
+          <!-- Progress Bar for Calories inside Modal -->
+          <div class="progress mb-3" style="height: 8px; border-radius: 4px;">
+            <div class="progress-bar bg-success" role="progressbar" data-width="{{ calorie_pct }}"
+              aria-valuenow="{{ today_calories }}" aria-valuemin="0" aria-valuemax="2000"></div>
+          </div>
+
+          {% if today_diet_plans %}
+          <ul class="list-group list-group-flush">
+            {% for plan in today_diet_plans %}
+            <li class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center gap-3">
+                <div class="text-end me-3">
+                  <span class="fw-semibold d-block text-dark">{{ plan.meal_type }}: {{ plan.meal_name }}</span>
+                  <small class="text-muted">{{ plan.calories }} kcal</small>
+                </div>
+                {% if plan.status == 'Pending' %}
+                <form action="{{ url_for('dashboard.complete_diet_plan', plan_id=plan.id) }}" method="POST">
+                  <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
+                    <i class="fas fa-check me-1"></i> Log Meal
+                  </button>
+                </form>
+                {% else %}
+                <span class="badge rounded-pill bg-success px-3 py-2">
+                  <i class="fas fa-check-double me-1"></i> Done
+                </span>
+                {% endif %}
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+
+      </div>
+      <div class="modal-footer border-0 p-4 pt-0 mt-2">
+        <button type="button" class="btn w-100 py-2 fw-semibold text-white shadow-sm" data-bs-dismiss="modal"
+          style="border-radius: 10px; background-color: #f97316; border-color: #ea580c;">Let's Get Started</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function updateSleepValue(val) {
+    const sleepVal = parseFloat(val);
+    document.getElementById('sleepValue').innerText = sleepVal.toFixed(1);
+    const circle = document.querySelector('.sleep-circle');
+    const scale = 0.8 + (sleepVal / 16) * 0.4;
+    circle.style.transform = `scale(${scale})`;
+
+    // Smart Insight Logic
+    const insightBox = document.getElementById('sleepInsight');
+    const insightText = document.getElementById('sleepInsightText');
+    const tooltip = document.getElementById('sleepTooltip');
+    
+    let msg = "";
+    let tooltipMsg = "";
+    let color = "";
+    let bg = "";
+    let border = "";
+
+    if (sleepVal >= 8) {
+      bg = '#f0fdf4';
+      border = '#bbf7d0';
+      color = '#166534';
+      msg = 'Fantastic! You reached the optimal sleep goal. Your body is ready for peak performance! 😴✨';
+      tooltipMsg = "Optimal Sleep! 😴✨";
+    } else if (sleepVal <= 6) {
+      bg = '#fff1f2';
+      border = '#fecdd3';
+      color = '#991b1b';
+      msg = 'Sleep alert! 6 hours is below the recommended rest. Try to catch up early tonight! 🛌💤';
+      tooltipMsg = "Need more rest! 🛌💤";
+    } else {
+      bg = '#f0f9ff';
+      border = '#bae6fd';
+      color = '#0369a1';
+      msg = 'You are getting there! Aim for a bit more rest to maximize your recovery. 🧘‍♂️';
+      tooltipMsg = "Keep going! 🧘‍♂️";
+    }
+
+    insightBox.style.display = 'block';
+    insightBox.style.background = bg;
+    insightBox.style.borderColor = border;
+    insightText.innerHTML = msg;
+    insightText.style.color = color;
+
+    // Update Tooltip
+    tooltip.innerHTML = tooltipMsg;
+    const percent = ((sleepVal - 0) / (16 - 0)) * 100;
+    tooltip.style.left = `calc(${percent}% + (${12 - percent * 0.24}px))`;
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    // Star Animation for Sleep Tracker
+    const starsContainer = document.getElementById('sleepStars');
+    if (starsContainer) {
+      for (let i = 0; i < 20; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 2 + 's';
+        starsContainer.appendChild(star);
+      }
+    }
+
+    // Apply progress bar widths
+    document.querySelectorAll('.progress-bar[data-width]').forEach(function (bar) {
+      bar.style.width = bar.dataset.width + '%';
+    });
+
+    // Apply status badge colors from data-status attributes (avoids CSS linter false positives)
+    document.querySelectorAll('.badge[data-status]').forEach(function (badge) {
+      badge.style.backgroundColor = badge.dataset.status === 'Completed' ? '#10b981' : '#f97316';
+    });
+
+    // Initialize sleep insight
+    const initialSleep = document.getElementById('sleepSlider').value;
+    updateSleepValue(initialSleep);
+
+    // Only show the modal once per browser session
+    if (!sessionStorage.getItem('dashboardModalShown')) {
+      var planModalEl = document.getElementById('todayPlanModal');
+      if (planModalEl) {
+        var planModal = new bootstrap.Modal(planModalEl);
+        planModal.show();
+        sessionStorage.setItem('dashboardModalShown', 'true');
+      }
+    }
+  });
+</script>
+{% endblock %}

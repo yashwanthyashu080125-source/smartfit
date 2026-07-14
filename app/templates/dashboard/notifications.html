@@ -1,0 +1,85 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% block title %}Notifications - SmartFit{% endblock %}
+
+{% block content %}
+<div class="container-fluid animate-fade-in">
+    <div class="row">
+        <div class="col-12">
+            <div class="p-4 bg-white rounded-4 shadow-sm mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="h4 mb-1">System Notifications</h2>
+                        <p class="text-muted small mb-0">Stay updated with your latest fitness goals and system alerts</p>
+                    </div>
+                    <span class="badge bg-primary rounded-pill px-3">{{ notifications|length }} Total</span>
+                </div>
+
+                <div class="notif-full-list">
+                    {% for notif in notifications %}
+                    <div class="notif-full-item p-4 mb-3 rounded-4 border {% if not notif.is_read %}unread{% endif %}">
+                        <div class="d-flex gap-4">
+                            <div class="notif-icon-lg {{ notif.type }}">
+                                <i class="fas {% if notif.type == 'warning' %}fa-exclamation-triangle{% elif notif.type == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h3 class="h6 mb-0 font-weight-bold">{{ notif.title }}</h3>
+                                    <span class="small text-muted">{{ notif.created_at.strftime('%A, %b %d at %H:%M') }}</span>
+                                </div>
+                                <p class="mb-3 text-secondary">{{ notif.message }}</p>
+                                
+                                <div class="d-flex align-items-center gap-3">
+                                    {% if not notif.is_read %}
+                                    <a href="{{ url_for('dashboard.mark_read', id=notif.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="fas fa-check me-1"></i> Mark as Read
+                                    </a>
+                                    {% else %}
+                                    <span class="text-success small"><i class="fas fa-check-double me-1"></i> Read</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-bell-slash fa-4x text-light"></i>
+                        </div>
+                        <h4 class="text-secondary">No notifications yet</h4>
+                        <p class="text-muted">When you receive system alerts or motivational nudges, they will appear here.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .notif-full-item {
+        transition: transform 0.2s, box-shadow 0.2s;
+        background: #f8fafc;
+        border-color: #f1f5f9;
+    }
+    .notif-full-item.unread {
+        background: #fff;
+        border-left: 4px solid #f97316;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .notif-full-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+    .notif-icon-lg {
+        width: 56px; height: 56px;
+        border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+    .notif-icon-lg.info { background: #e0f2fe; color: #0ea5e9; }
+    .notif-icon-lg.success { background: #dcfce7; color: #10b981; }
+    .notif-icon-lg.warning { background: #fef3c7; color: #f59e0b; }
+</style>
+{% endblock %}

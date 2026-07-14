@@ -1,0 +1,179 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% block title %}Profile Settings{% endblock %}
+
+{% block content %}
+<div class="profile-settings-container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <h1 class="page-title">Profile Settings</h1>
+        <p class="page-subtitle">Manage your personal information and fitness goals</p>
+    </div>
+
+    <!-- ✅ FIXED: Added enctype for file upload -->
+    <form action="{{ url_for('dashboard.profile') }}" method="POST" enctype="multipart/form-data">
+        <div class="profile-grid">
+
+            <!-- Left Column: Profile Picture -->
+            <div class="profile-pic-section">
+                <div class="card">
+                    <div class="pic-preview-container">
+                        <!-- ✅ FIXED: Check profile_pic field -->
+                        {% if user.profile_pic and user.profile_pic != 'default.png' %}
+                        <img src="{{ url_for('static', filename='uploads/profiles/' + user.profile_pic) }}"
+                            alt="Profile" class="profile-preview-img" id="profilePreview">
+                        {% else %}
+                        <div class="profile-preview-placeholder" id="profilePreview">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        {% endif %}
+
+                        <label for="profile_pic" class="upload-overlay">
+                            <i class="fas fa-camera"></i>
+                            <span>Change Photo</span>
+                        </label>
+                        <input type="file" id="profile_pic" name="profile_pic" accept="image/*" style="display: none;"
+                            onchange="previewImage(event)">
+                    </div>
+                    <div class="pic-info">
+                        <h3>{{ user.name }}</h3>
+                        <p>{{ user.email }}</p>
+                        <span class="badge {{ user.role }}">{{ user.role|title }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Forms -->
+            <div class="profile-form-section">
+
+                <!-- Personal Information -->
+                <div class="card form-card">
+                    <h3 class="form-section-title">Personal Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}"
+                                required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" class="form-control" id="age" name="age" value="{{ user.age }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select class="form-control" id="gender" name="gender">
+                                <option value="Male" {% if user.gender=='Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if user.gender=='Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if user.gender=='Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fitness Profile -->
+                <div class="card form-card">
+                    <h3 class="form-section-title">Fitness Profile</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="height">Height (cm)</label>
+                            <input type="number" class="form-control" id="height" name="height"
+                                value="{{ user.height }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="weight">Weight (kg)</label>
+                            <input type="number" class="form-control" id="weight" name="weight"
+                                value="{{ user.weight }}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="activity_level">Activity Level</label>
+                            <select class="form-control" id="activity_level" name="activity_level">
+                                <option value="Sedentary" {% if user.activity_level=='Sedentary' %}selected{% endif %}>
+                                    Sedentary (Little/no exercise)</option>
+                                <option value="Light" {% if user.activity_level=='Light' %}selected{% endif %}>Light
+                                    (1-3 days/week)</option>
+                                <option value="Moderate" {% if user.activity_level=='Moderate' %}selected{% endif %}>
+                                    Moderate (3-5 days/week)</option>
+                                <option value="Active" {% if user.activity_level=='Active' %}selected{% endif %}>Active
+                                    (6-7 days/week)</option>
+                                <option value="Very Active" {% if user.activity_level=='Very Active' %}selected{% endif
+                                    %}>Very Active (Twice per day)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="goal_type">Primary Goal</label>
+                            <select class="form-control" id="goal_type" name="goal_type">
+                                <option value="Weight Loss" {% if user.goal_type=='Weight Loss' %}selected{% endif %}>
+                                    Weight Loss</option>
+                                <option value="Muscle Gain" {% if user.goal_type=='Muscle Gain' %}selected{% endif %}>
+                                    Muscle Gain</option>
+                                <option value="Weight Gain" {% if user.goal_type=='Weight Gain' %}selected{% endif %}>
+                                    Weight Gain</option>
+                                <option value="Hybrid" {% if user.goal_type=='Hybrid' %}selected{% endif %}>Hybrid
+                                    (Strength & Cardio)</option>
+                                <option value="Maintenance" {% if user.goal_type=='Maintenance' %}selected{% endif %}>
+                                    Maintenance</option>
+                                <option value="Other" {% if user.goal_type=='Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-save"
+                        onclick="setTimeout(() => {this.form.submit(); this.disabled=true; this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Processing...';}, 0);">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <a href="{{ url_for('dashboard.index') }}" class="btn-cancel"
+                        style="text-decoration: none; padding: 10px 20px; border: 1px solid #ddd; border-radius: 8px; color: #4b5563; background: white;">Cancel</a>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                event.target.value = '';
+                return;
+            }
+
+            // Check file type
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Please upload a valid image file (JPG, PNG, or GIF)');
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const output = document.getElementById('profilePreview');
+                if (output.tagName === 'IMG') {
+                    output.src = e.target.result;
+                } else {
+                    output.innerHTML = '<img src="' + e.target.result + '" class="profile-preview-img">';
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+{% block title %}Fitness Architecture — SmartFit{% endblock %}
+
+{% block head %}
+<style>
+:root {
+    --orange: #f97316;
+    --surface: rgba(249,115,22,0.04);
+    --border: rgba(0,0,0,0.07);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --orange-glow: rgba(249,115,22,0.2);
+}
+
+.fitness-hero {
+    padding: 120px 40px 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffffff 55%);
+}
+
+.fitness-hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 65%);
+    pointer-events: none;
+    animation: orbPulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes orbPulse {
+    from { transform: scale(1); opacity: 0.7; }
+    to { transform: scale(1.2); opacity: 1; }
+}
+
+.page-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(249,115,22,0.1);
+    border: 1px solid rgba(249,115,22,0.25);
+    color: #f97316; font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 100px; margin-bottom: 24px;
+    animation: fadeDown 0.7s ease both;
+}
+
+@keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fitness-hero h1 {
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    line-height: 1.1;
+    animation: fadeUp 0.8s 0.1s ease both;
+}
+
+.fitness-hero h1 .accent-text {
+    background: linear-gradient(135deg, #f97316, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.fitness-hero p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 580px;
+    margin: 0 auto;
+    line-height: 1.8;
+    animation: fadeUp 0.8s 0.2s ease both;
+}
+
+/* WORKOUT TIMELINE */
+.timeline-section {
+    padding: 20px 40px 80px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.timeline-section h2 {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    letter-spacing: -1px;
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 40px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--orange), rgba(249,115,22,0.1));
+}
+
+.timeline-item {
+    position: relative;
+    padding: 0 0 50px 40px;
+    transition: all 0.3s ease;
+}
+
+.timeline-item:last-child { padding-bottom: 0; }
+
+.timeline-dot {
+    position: absolute;
+    left: -31px; top: 6px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--orange), #ea580c);
+    box-shadow: 0 0 20px rgba(249,115,22,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.timeline-item:hover .timeline-dot {
+    transform: scale(1.3);
+    box-shadow: 0 0 30px rgba(249,115,22,0.6);
+}
+
+.timeline-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: all 0.4s ease;
+}
+
+.timeline-item:hover .timeline-card {
+    background: rgba(249,115,22,0.03);
+    border-color: rgba(249,115,22,0.25);
+    transform: translateX(8px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+}
+
+.timeline-card h4 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.timeline-card h4 span.step-num {
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(249,115,22,0.15);
+    color: var(--orange);
+    padding: 2px 8px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+}
+
+.timeline-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+/* WORKOUT STATS */
+.workout-stats {
+    padding: 60px 40px;
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    background: #f8fafc;
+}
+
+.w-stat {
+    text-align: center;
+    padding: 30px;
+    background: white;
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    transition: all 0.4s ease;
+}
+
+.w-stat:hover {
+    border-color: rgba(249,115,22,0.3);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+    background: rgba(249,115,22,0.02);
+}
+
+.w-stat-icon {
+    font-size: 2rem;
+    margin-bottom: 14px;
+    display: block;
+    animation: iconBounce 3s ease-in-out infinite;
+}
+
+.w-stat:nth-child(2) .w-stat-icon { animation-delay: 0.5s; }
+.w-stat:nth-child(3) .w-stat-icon { animation-delay: 1s; }
+.w-stat:nth-child(4) .w-stat-icon { animation-delay: 1.5s; }
+
+@keyframes iconBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.w-stat-val {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #f97316, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.w-stat-lbl {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    font-weight: 500;
+}
+
+/* CAPABILITY GRID */
+.capability-section {
+    padding: 80px 40px;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.cap-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 50px;
+}
+
+.cap-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+}
+
+.cap-card:hover {
+    border-color: rgba(249,115,22,0.3);
+    transform: translateY(-10px) rotateX(2deg);
+    box-shadow: 0 24px 50px rgba(0,0,0,0.1), 0 0 20px rgba(249,115,22,0.08);
+    background: rgba(249,115,22,0.02);
+}
+
+.cap-icon {
+    font-size: 2rem;
+    margin-bottom: 18px;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.cap-card:hover .cap-icon {
+    transform: scale(1.2) translateZ(10px);
+}
+
+.cap-card h4 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.cap-card p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+    .workout-stats { grid-template-columns: 1fr 1fr; }
+    .cap-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+    .workout-stats { grid-template-columns: 1fr; }
+    .cap-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="fitness-hero">
+    <div class="page-tag"><i class="fas fa-dumbbell"></i> Performance Architecture</div>
+    <h1>Train Smarter.<br><span class="accent-text">Perform Harder.</span></h1>
+    <p>Dynamic training protocols, real-time performance tracking, and intelligent workout plans designed for measurable growth and consistent results.</p>
+</section>
+
+<!-- Workout Stats -->
+<div class="workout-stats">
+    <div class="w-stat reveal">
+        <span class="w-stat-icon">💪</span>
+        <div class="w-stat-val">500k+</div>
+        <div class="w-stat-lbl">Workouts Logged</div>
+    </div>
+    <div class="w-stat reveal" style="transition-delay:0.1s">
+        <span class="w-stat-icon">🔥</span>
+        <div class="w-stat-val">12M+</div>
+        <div class="w-stat-lbl">Calories Burned</div>
+    </div>
+    <div class="w-stat reveal" style="transition-delay:0.2s">
+        <span class="w-stat-icon">📈</span>
+        <div class="w-stat-val">95%</div>
+        <div class="w-stat-lbl">Completion Rate</div>
+    </div>
+    <div class="w-stat reveal" style="transition-delay:0.3s">
+        <span class="w-stat-icon">🎯</span>
+        <div class="w-stat-val">6+</div>
+        <div class="w-stat-lbl">Difficulty Levels</div>
+    </div>
+</div>
+
+<!-- Timeline — How it works -->
+<div class="timeline-section">
+    <h2 class="reveal">Your <span style="background: linear-gradient(135deg, #f97316, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Workout Journey</span></h2>
+    <div class="timeline">
+        <div class="timeline-item reveal">
+            <div class="timeline-dot"><i class="fas fa-user"></i></div>
+            <div class="timeline-card">
+                <h4><span class="step-num">STEP 01</span> Set Your Profile</h4>
+                <p>Enter your height, weight, age, and fitness goal. Our system instantly computes your BMI, BMR, and recommended daily caloric targets to build a personalized baseline.</p>
+            </div>
+        </div>
+        <div class="timeline-item reveal" style="transition-delay:0.1s">
+            <div class="timeline-dot"><i class="fas fa-clipboard-list"></i></div>
+            <div class="timeline-card">
+                <h4><span class="step-num">STEP 02</span> Receive Your Plan</h4>
+                <p>Your trainer-admin assigns a fully customized weekly workout schedule with detailed exercises, duration, calorie targets, and difficulty levels tailored to your goals.</p>
+            </div>
+        </div>
+        <div class="timeline-item reveal" style="transition-delay:0.2s">
+            <div class="timeline-dot"><i class="fas fa-play"></i></div>
+            <div class="timeline-card">
+                <h4><span class="step-num">STEP 03</span> Execute & Log</h4>
+                <p>Complete your workouts and log each session. Track sets, reps, duration, and calories burned. Mark plans as complete, skip, or view full instructions with photo guides.</p>
+            </div>
+        </div>
+        <div class="timeline-item reveal" style="transition-delay:0.3s">
+            <div class="timeline-dot"><i class="fas fa-chart-bar"></i></div>
+            <div class="timeline-card">
+                <h4><span class="step-num">STEP 04</span> Analyze & Evolve</h4>
+                <p>View detailed analytics on your performance trends, calorie burn history, and goal progress. Your plan evolves as you improve, keeping you challenged and growing.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Capabilities -->
+<div class="capability-section">
+    <div style="text-align:center; margin-bottom:20px;" class="reveal">
+        <div class="page-tag" style="margin-bottom:20px;"><i class="fas fa-bolt"></i> Core Capabilities</div>
+        <h2 style="font-size:2rem; font-weight:900; color:var(--text-primary); letter-spacing:-1px;">Engineered for <span style="color:#f97316;">Precision Training</span></h2>
+    </div>
+    <div class="cap-grid">
+        <div class="cap-card reveal">
+            <span class="cap-icon">📋</span>
+            <h4>Adaptive Workout Planner</h4>
+            <p>Create structured training programs based on specific physiological targets with day-by-day scheduling.</p>
+        </div>
+        <div class="cap-card reveal" style="transition-delay:0.05s">
+            <span class="cap-icon">✏️</span>
+            <h4>Precision Activity Logging</h4>
+            <p>Record exercises, sets, reps, load vectors, and session duration with detailed performance history.</p>
+        </div>
+        <div class="cap-card reveal" style="transition-delay:0.1s">
+            <span class="cap-icon">📊</span>
+            <h4>Growth Analytics</h4>
+            <p>Analyze strength progression trends and workout consistency through visual charts and data models.</p>
+        </div>
+        <div class="cap-card reveal" style="transition-delay:0.15s">
+            <span class="cap-icon">📈</span>
+            <h4>Progressive Overload Tracking</h4>
+            <p>Monitor load progression improvements automatically across training cycles to ensure continuous growth.</p>
+        </div>
+        <div class="cap-card reveal" style="transition-delay:0.2s">
+            <span class="cap-icon">🔥</span>
+            <h4>Calorie Burn Estimation</h4>
+            <p>Track energy expenditure and metabolic flux per individual training session with live calculations.</p>
+        </div>
+        <div class="cap-card reveal" style="transition-delay:0.25s">
+            <span class="cap-icon">✅</span>
+            <h4>Goal Alignment</h4>
+            <p>Every session is mapped to your long-term goals, ensuring maximum purpose behind every rep.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

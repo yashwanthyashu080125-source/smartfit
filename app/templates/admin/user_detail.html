@@ -1,0 +1,484 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}User Details - {{ user.name }}{% endblock %}
+
+{% block content %}
+<div class="user-detail-container">
+
+    <!-- Header with Back Button -->
+    <div class="page-header-actions mb-4">
+        <div>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Users
+            </a>
+            <h2 class="d-inline ms-3">{{ user.name }}'s Profile</h2>
+        </div>
+        <div>
+            <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST"
+                  onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone!');"
+                  class="d-inline">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Delete User
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Info Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon">
+                    <i class="fas fa-dumbbell"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Total Workouts</h3>
+                    <div class="stat-number">{{ total_workouts }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-card-success">
+                <div class="stat-icon">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Calories Burned</h3>
+                    <div class="stat-number">{{ total_calories }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-card-info">
+                <div class="stat-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Meals Logged</h3>
+                    <div class="stat-number">{{ total_meals }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Assigned Plans</h3>
+                    <div class="stat-number">{{ total_plans }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Card -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4><i class="fas fa-user"></i> User Profile</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Name:</strong> {{ user.name }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Role:</strong> <span class="badge badge-user">{{ user.role|title }}</span></p>
+                    <p><strong>Age:</strong> {{ user.age or 'N/A' }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Height:</strong> {{ user.height or 'N/A' }} cm</p>
+                    <p><strong>Weight:</strong> {{ user.weight or 'N/A' }} kg</p>
+                    <p><strong>Gender:</strong> {{ user.gender or 'N/A' }}</p>
+                    <p><strong>Activity Level:</strong> {{ user.activity_level or 'N/A' }}</p>
+                    {% if bmi %}
+                    <p><strong>BMI:</strong> {{ bmi }} <span class="badge {% if bmi_category == 'Normal' %}badge-success{% elif bmi_category == 'Overweight' %}badge-warning{% else %}badge-danger{% endif %}">{{ bmi_category }}</span></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4" id="userTabs" role="tablist">
+        <li class="nav-item">
+            <button type="button" class="nav-link active" data-bs-toggle="tab" data-bs-target="#workout-plans">
+                <i class="fas fa-dumbbell"></i> Workout Plans
+            </button>
+        </li>
+        <li class="nav-item">
+            <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#diet-plans">
+                <i class="fas fa-utensils"></i> Diet Plans
+            </button>
+        </li>
+        <li class="nav-item">
+            <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#workout-history">
+                <i class="fas fa-history"></i> Workout History
+            </button>
+        </li>
+        <li class="nav-item">
+            <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#nutrition">
+                <i class="fas fa-apple-alt"></i> Nutrition
+            </button>
+        </li>
+        <li class="nav-item">
+            <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#goals">
+                <i class="fas fa-bullseye"></i> Goals
+            </button>
+        </li>
+        <li class="nav-item">
+            <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#sleep">
+                <i class="fas fa-bed"></i> Sleep Logs
+            </button>
+        </li>
+        <li class="nav-item">
+            <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#activities">
+                <i class="fas fa-activity"></i> Activities
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="userTabsContent">
+
+        <!-- Workout Plans Tab -->
+        <div class="tab-pane fade show active" id="workout-plans">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-dumbbell"></i> Admin Assigned Workout Plans</h5>
+                    <a href="{{ url_for('admin.plans', user_id=user.id) }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Assign New Plan
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if workout_plans %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Workout</th>
+                                    <th>Day</th>
+                                    <th>Duration</th>
+                                    <th>Difficulty</th>
+                                    <th>Status</th>
+                                    <th>Assigned Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for plan in workout_plans %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ plan.workout_name }}</strong><br>
+                                        <small class="text-muted">{{ plan.description[:50] if plan.description else 'No description' }}...</small>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark">{{ plan.day_of_week or 'Any' }}</span></td>
+                                    <td>{{ plan.duration }} mins</td>
+                                    <td>
+                                        <span class="badge {% if plan.difficulty == 'Advanced' %}bg-danger{% elif plan.difficulty == 'Intermediate' %}bg-warning{% else %}bg-success{% endif %}">
+                                            {{ plan.difficulty }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if plan.status == 'Completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ plan.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ plan.created_at.strftime('%d %b %Y') if plan.created_at else 'N/A' }}</td>
+                                    <td>
+                                        <form action="{{ url_for('admin.delete_plan_from_user_detail', user_id=user.id, plan_id=plan.id) }}"
+                                              method="POST"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Delete this workout plan?');">
+                                            <input type="hidden" name="plan_type" value="workout">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted py-4">No workout plans assigned yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Diet Plans Tab -->
+        <div class="tab-pane fade" id="diet-plans">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-utensils"></i> Admin Assigned Diet Plans</h5>
+                    <a href="{{ url_for('admin.plans', user_id=user.id) }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Assign New Plan
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if diet_plans %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Meal</th>
+                                    <th>Type</th>
+                                    <th>Day</th>
+                                    <th>Calories</th>
+                                    <th>Macros (P/C/F)</th>
+                                    <th>Status</th>
+                                    <th>Assigned Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for plan in diet_plans %}
+                                <tr>
+                                    <td><strong>{{ plan.meal_name }}</strong></td>
+                                    <td><span class="badge bg-info">{{ plan.meal_type }}</span></td>
+                                    <td><span class="badge bg-light text-dark">{{ plan.day_of_week or 'Any' }}</span></td>
+                                    <td>{{ plan.calories }} kcal</td>
+                                    <td><small>{{ plan.protein }}g / {{ plan.carbs }}g / {{ plan.fat }}g</small></td>
+                                    <td>
+                                        <span class="badge {% if plan.status == 'Completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ plan.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ plan.created_at.strftime('%d %b %Y') if plan.created_at else 'N/A' }}</td>
+                                    <td>
+                                        <form action="{{ url_for('admin.delete_plan_from_user_detail', user_id=user.id, plan_id=plan.id) }}"
+                                              method="POST"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Delete this diet plan?');">
+                                            <input type="hidden" name="plan_type" value="diet">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted py-4">No diet plans assigned yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Workout History Tab -->
+        <div class="tab-pane fade" id="workout-history">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history"></i> Recent Workout History</h5>
+                </div>
+                <div class="card-body">
+                    {% if user_workouts %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Workout Type</th>
+                                    <th>Duration</th>
+                                    <th>Calories Burned</th>
+                                    <th>Exercises</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for w in user_workouts %}
+                                <tr>
+                                    <td>{{ w.date.strftime('%d %b %Y') if w.date else 'N/A' }}</td>
+                                    <td><span class="badge bg-primary">{{ w.workout_type or 'General' }}</span></td>
+                                    <td>{{ w.duration }} mins</td>
+                                    <td><span class="badge bg-danger">{{ w.calories_burned or 0 }} kcal</span></td>
+                                    <td>{{ w.exercises[:50] if w.exercises else '-' }}...</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted py-4">No workout history found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Nutrition Tab -->
+        <div class="tab-pane fade" id="nutrition">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-apple-alt"></i> Recent Nutrition Logs</h5>
+                    {% set photo_count = user_nutrition | selectattr('meal_image') | list | length %}
+                    {% if photo_count > 0 %}
+                    <span class="badge bg-success">
+                        <i class="fas fa-camera"></i> {{ photo_count }} meal photo{{ 's' if photo_count != 1 }}
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if user_nutrition %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Photo</th>
+                                    <th>Date</th>
+                                    <th>Meal Name</th>
+                                    <th>Meal Type</th>
+                                    <th>Calories</th>
+                                    <th>Protein</th>
+                                    <th>Carbs</th>
+                                    <th>Fat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for n in user_nutrition %}
+                                <tr>
+                                    <td>
+                                        {% if n.meal_image %}
+                                        <img src="{{ url_for('static', filename='uploads/meals/' ~ n.meal_image) }}"
+                                             alt="Meal"
+                                             title="{{ n.meal_name }}"
+                                             style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:2px solid #e2e8f0;cursor:pointer;"
+                                             onclick="window.open(this.src,'_blank')"
+                                             onerror="this.replaceWith(document.createTextNode('—'))">
+                                        {% else %}
+                                        <span style="display:inline-flex;width:52px;height:52px;align-items:center;justify-content:center;background:#f1f5f9;border-radius:8px;color:#94a3b8;">
+                                            <i class="fas fa-image"></i>
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ n.date.strftime('%d %b %Y') if n.date else 'N/A' }}</td>
+                                    <td>{{ n.meal_name or 'Unknown' }}</td>
+                                    <td><span class="badge bg-info">{{ n.meal_type or 'General' }}</span></td>
+                                    <td><span class="badge bg-danger">{{ n.calories or 0 }} kcal</span></td>
+                                    <td>{{ n.protein or 0 }}g</td>
+                                    <td>{{ n.carbohydrates or 0 }}g</td>
+                                    <td>{{ n.fat or 0 }}g</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted py-4">No nutrition logs found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Goals Tab -->
+        <div class="tab-pane fade" id="goals">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bullseye"></i> User Goals</h5>
+                </div>
+                <div class="card-body">
+                    {% if user_goals %}
+                    <div class="row">
+                        {% for g in user_goals %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card {% if g.completed %}border-success{% endif %}">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ g.title }}</h6>
+                                    <p class="card-text"><strong>Type:</strong> {{ g.goal_type }}</p>
+                                    <p class="card-text"><strong>Description:</strong> {{ g.description or 'No description' }}</p>
+                                    <p class="card-text">
+                                        <strong>Target:</strong> {{ g.target_value }} {{ g.unit }} |
+                                        <strong>Current:</strong> {{ g.current_value }} {{ g.unit }}
+                                    </p>
+                                    <p class="card-text">
+                                        <strong>Period:</strong> {{ g.start_date.strftime('%d %b %Y') if g.start_date else 'N/A' }} -
+                                        {{ g.target_date.strftime('%d %b %Y') if g.target_date else 'Ongoing' }}
+                                    </p>
+                                    <span class="badge {% if g.completed %}bg-success{% else %}bg-warning{% endif %}">
+                                        {{ 'Completed' if g.completed else 'In Progress' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted py-4">No goals set yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sleep Tab -->
+        <div class="tab-pane fade" id="sleep">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bed"></i> Sleep History</h5>
+                </div>
+                <div class="card-body">
+                    {% if user_sleep %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Duration</th>
+                                    <th>Logged At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in user_sleep %}
+                                <tr>
+                                    <td>{{ s.date.strftime('%d %b %Y') if s.date else 'N/A' }}</td>
+                                    <td><span class="badge bg-primary">{{ s.hours }} hours</span></td>
+                                    <td><small class="text-muted">{{ s.created_at.strftime('%H:%M') if s.created_at else 'N/A' }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted py-4">No sleep logs found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Activities Tab -->
+        <div class="tab-pane fade" id="activities">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-activity"></i> Recent User Activities</h5>
+                </div>
+                <div class="card-body">
+                    {% if user_activities %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in user_activities %}
+                                <tr>
+                                    <td>{{ activity.date.strftime('%d %b %Y %H:%M') if activity.date else 'N/A' }}</td>
+                                    <td>{{ activity.action }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted py-4">No recent activities found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

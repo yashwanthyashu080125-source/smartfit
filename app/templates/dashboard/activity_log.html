@@ -1,0 +1,64 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% block title %}Activity Log - SmartFit{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1 class="page-title">Activity Log 📋</h1>
+    <p class="page-subtitle">Track everything you do on SmartFit</p>
+</div>
+
+<div class="content-section">
+
+<h3 class="section-title">Recent Activities</h3>
+
+<ul class="activity-list">
+
+{% for activity in activities %}
+
+<li class="activity-item">
+
+<div class="activity-icon">
+<i class="fas fa-check-circle"></i>
+</div>
+
+<div class="activity-content">
+
+<div class="activity-title">
+{{ activity.action }}
+</div>
+
+<div class="activity-time">
+{{ activity.date.strftime('%B %d, %Y • %I:%M %p') }}
+</div>
+
+</div>
+
+</li>
+
+{% else %}
+
+<li class="activity-item">
+
+<div class="activity-content">
+
+<div class="activity-title">
+No activities yet
+</div>
+
+<div class="activity-time">
+Start tracking workouts or meals to see activity here.
+</div>
+
+</div>
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+</div>
+
+{% endblock %}

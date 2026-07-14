@@ -1,0 +1,554 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% block title %}Nutrition{% endblock %}
+
+{% block content %}
+<div class="nutrition-container">
+
+    <!-- Header Section -->
+    <div class="page-header-custom animate-up">
+        <div class="header-content">
+            <h1 class="page-title-custom">🥗 Calorie Intelligence</h1>
+            <p class="page-subtitle-custom">Nutritional data processing and smart meal forecasting</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-action-pill" data-bs-toggle="modal" data-bs-target="#analyzeMealModal">
+                <i class="fas fa-brain me-1"></i> AI Neural Analysis
+            </button>
+        </div>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="nutrition-tabs-container">
+        <ul class="nav nav-pills nutrition-pills" id="nutritionTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="pending-tab" data-bs-toggle="pill" data-bs-target="#pending" type="button" role="tab">
+                    <i class="fas fa-calendar-day"></i> Today's Plan
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="tab-content mt-4" id="nutritionTabContent">
+        <!-- Tab 1: Pending / Today's Plan -->
+        <div class="tab-pane fade show active" id="pending" role="tabpanel">
+            {% if grouped_pending %}
+                <div class="daily-plan-grid">
+                    {% for day, day_meals in grouped_pending.items() %}
+                    <div class="daily-summary-card animate-up" 
+                         style="--delay: {{ loop.index }}; animation-delay: calc(var(--delay) * 0.1s);"
+                         data-day="{{ day }}" 
+                         data-meals='{{ day_meals|tojson|safe }}'
+                         onclick="openDaySmartModal(this)">
+                        <div class="daily-card-header">
+                            <span class="day-badge">{{ day }}</span>
+                            <span class="meal-count">{{ day_meals|length }} Meals</span>
+                        </div>
+                        <div class="daily-card-body">
+                            <div class="meal-types-preview">
+                                {% for meal in day_meals %}
+                                <span class="meal-type-dot" title="{{ meal.meal_type }}">
+                                    {% if meal.meal_type == 'Breakfast' %}🌅{% elif meal.meal_type == 'Lunch' %}☀️{% elif meal.meal_type == 'Dinner' %}🌙{% else %}🍎{% endif %}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            <h4 class="daily-card-title">View Detailed Plan</h4>
+                            <p class="daily-card-subtitle">Click to see breakfast, lunch, and more</p>
+                        </div>
+                        <div class="daily-card-footer">
+                            <div class="calorie-summary">
+                                <i class="fas fa-fire"></i>
+                                <span>{{ day_meals|sum(attribute='calories')|int }} Total Calories</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state-card">
+                    <div class="empty-icon">🥗</div>
+                    <h3>No pending meals</h3>
+                    <p>You've cleared your schedule for today! Great job.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Meal Log (Compact) -->
+    <div class="compact-log-section mt-5 animate-up" style="animation-delay: 0.5s">
+        <div class="section-header">
+            <h3><i class="fas fa-utensils"></i> Macro Intelligence</h3>
+            <p>Real-time intake logging and nutrient distribution tracking</p>
+        </div>
+        <div class="compact-upload-card">
+            <form action="{{ url_for('dashboard.log_meal') }}" method="POST" enctype="multipart/form-data" class="compact-log-form">
+                <div class="upload-area-sm" onclick="document.getElementById('compactMealInput').click()">
+                    <div id="compactPlaceholder">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Photo</span>
+                    </div>
+                    <img id="compactPreview" src="" alt="Preview" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                    <input type="file" id="compactMealInput" name="meal_image" accept="image/*" required style="display:none" onchange="previewCompact(event)">
+                </div>
+                <div class="form-controls-sm">
+                    <select name="meal_type" class="form-select-sm" style="min-width: 120px;">
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Lunch" selected>Lunch</option>
+                        <option value="Dinner">Dinner</option>
+                        <option value="Snack">Snack</option>
+                    </select>
+                    <input type="number" name="calories" class="form-control-sm" placeholder="Calories" style="width: 90px;">
+                    <input type="number" name="protein" class="form-control-sm" placeholder="Protein (g)" style="width: 90px;">
+                    <button type="submit" class="btn-upload-sm">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modals moved to bottom -->
+
+<style>
+    /* ── Redesign Variables & Base ── */
+    :root {
+        --nutri-primary: #10b981;
+        --nutri-bg: #f8fafc;
+        --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    }
+
+    .nutrition-container {
+        padding-bottom: 50px;
+    }
+
+    /* ── Header ── */
+    .page-header-custom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .page-title-custom {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    .page-subtitle-custom {
+        color: #64748b;
+        margin: 0;
+    }
+
+    .btn-action-pill {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 100px;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .btn-action-pill:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    /* ── Tabs ── */
+    .nutrition-tabs-container {
+        background: #fff;
+        padding: 8px;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 24px;
+    }
+
+    .nutrition-pills .nav-link {
+        color: #64748b;
+        font-weight: 600;
+        padding: 12px 24px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        background: transparent;
+    }
+
+    .nutrition-pills .nav-link.active {
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+    }
+
+    .nutrition-pills .nav-link:not(.active):hover {
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+
+    /* ── Daily Plan Grid ── */
+    .daily-plan-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .daily-summary-card {
+        background: #fff;
+        border-radius: 24px;
+        padding: 24px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid #f1f5f9;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .daily-summary-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: var(--nutri-primary);
+    }
+
+    .day-badge {
+        background: #ecfdf5;
+        color: #059669;
+        padding: 4px 12px;
+        border-radius: 100px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    .meal-count {
+        color: #64748b;
+        font-size: 0.85rem;
+        font-weight: 600;
+        float: right;
+    }
+
+    .meal-types-preview {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .meal-type-dot {
+        width: 32px;
+        height: 32px;
+        background: #f8fafc;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+
+    .daily-card-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .daily-card-subtitle {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .calorie-summary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #f59e0b;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    /* ── Compact History Cards ── */
+    .history-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .meal-card-compact {
+        background: #fff;
+        border-radius: 16px;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .meal-info h5 {
+        margin: 4px 0;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .meal-tag {
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--nutri-primary);
+        background: #ecfdf5;
+        padding: 2px 8px;
+        border-radius: 6px;
+    }
+
+    /* ── Compact Log Section ── */
+    .compact-log-section {
+        background: #fff;
+        padding: 24px;
+        border-radius: 24px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+
+    .section-header h3 {
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 4px;
+    }
+
+    .compact-upload-card {
+        flex-grow: 1;
+        max-width: 500px;
+    }
+
+    .compact-log-form {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .upload-area-sm {
+        width: 100px;
+        height: 80px;
+        background: #f1f5f9;
+        border: 2px dashed #cbd5e1;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        overflow: hidden;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .upload-area-sm:hover {
+        border-color: var(--nutri-primary);
+        background: #ecfdf5;
+    }
+
+    .upload-area-sm span {
+        font-size: 0.65rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .form-controls-sm {
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+        flex-grow: 1;
+        align-items: center;
+    }
+
+    .form-select-sm, .form-control-sm {
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        flex-grow: 1;
+        font-size: 0.85rem;
+    }
+
+    .btn-upload-sm {
+        background: var(--nutri-primary);
+        color: #fff;
+        border: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        font-weight: 700;
+        transition: transform 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-upload-sm:hover {
+        transform: scale(1.1);
+        background: #059669;
+    }
+
+    /* ── Empty State ── */
+    .empty-state-card {
+        text-align: center;
+        padding: 50px 20px;
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+    }
+
+    /* ── Smart Modal ── */
+    .smart-modal-content {
+        border-radius: 28px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .smart-meal-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 10px 0;
+    }
+
+    .smart-meal-item {
+        background: #f8fafc;
+        border-radius: 20px;
+        padding: 20px;
+        border-left: 6px solid var(--nutri-primary);
+    }
+
+    .s-meal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .s-meal-type {
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: var(--nutri-primary);
+        background: #ecfdf5;
+        padding: 4px 10px;
+        border-radius: 8px;
+    }
+
+    .s-meal-name {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 8px;
+    }
+
+    .s-meal-desc {
+        font-size: 0.95rem;
+        color: #64748b;
+        line-height: 1.6;
+    }
+
+    .s-meal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .btn-s-complete {
+        background: #1e293b;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        flex-grow: 1;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .btn-s-skip {
+        background: #fff;
+        color: #ef4444;
+        border: 1px solid #fee2e2;
+        padding: 10px 15px;
+        border-radius: 10px;
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .compact-log-section {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .compact-upload-card {
+            width: 100%;
+        }
+    }
+</style>
+
+{% endblock %}
+
+{% block modals %}
+<!-- Smart Daily Plan Modal -->
+<div class="modal fade" id="smartPlanModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content smart-modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="smartDayTitle">Monday's Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="smartMealContainer" class="smart-meal-list">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analyze Meal Modal -->
+<div class="modal fade" id="analyzeMealModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><i class="fas fa-magic"></i> AI Meal Analysis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('dashboard.analyze_meal') }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Take or upload a photo of your food</label>
+                        <input type="file" class="form-control" name="meal_image" accept="image/*" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-primary w-100 py-2" style="border-radius: 12px;">Start
+                        Analysis</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script src="{{ url_for('static', filename='js/nutrition.js') }}"></script>
+{% endblock %}

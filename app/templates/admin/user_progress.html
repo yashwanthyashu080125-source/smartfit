@@ -1,0 +1,265 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}Performance & Progress Dashboard{% endblock %}
+
+{% block content %}
+<div class="user-progress-container animate-fade-in">
+    <!-- Top Stats -->
+    <div class="stats-grid">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-icon"><i class="fas fa-bolt"></i></div>
+            <div class="stat-details">
+                <h3>Avg. Performance</h3>
+                {% set total_score = 0 %}
+                {% for item in progress_data %}
+                {% set total_score = total_score + item.performance_score %}
+                {% endfor %}
+                <div class="stat-number">
+                    {% if progress_data|length > 0 %}
+                    {{ (total_score / progress_data|length)|round(1) }}
+                    {% else %}0{% endif %}
+                </div>
+                <div class="stat-change positive">System intensity score</div>
+            </div>
+        </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-icon"><i class="fas fa-check-double"></i></div>
+            <div class="stat-details">
+                <h3>Goal Success Rate</h3>
+                {% set total_prog = 0 %}
+                {% for item in progress_data %}
+                {% set total_prog = total_prog + item.goal_progress %}
+                {% endfor %}
+                <div class="stat-number">
+                    {% if progress_data|length > 0 %}
+                    {{ (total_prog / progress_data|length)|round(1) }}%
+                    {% else %}0%{% endif %}
+                </div>
+                <div class="stat-change positive">User objective tracking</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Grid -->
+    <div class="section-header mt-5">
+        <h3 class="section-title"><i class="fas fa-th-large"></i> User Performance Grid</h3>
+        <p class="section-subtitle">A visual overview of user engagement and activity metrics</p>
+    </div>
+
+    <div class="performance-grid animate-slide-up">
+        {% for item in progress_data %}
+        <div class="performance-card">
+            <div class="card-top">
+                <div
+                    class="perf-score-badge {{ 'high' if item.performance_score > 70 else 'medium' if item.performance_score > 30 else 'low' }}">
+                    {{ item.performance_score }}
+                </div>
+                <div class="user-info-large">
+                    <div class="avatar-large">{{ item.user.name[0]|upper }}</div>
+                    <h4>{{ item.user.name }}</h4>
+                    <span class="user-tag">Member Since {{ item.user.created_at.strftime('%b %Y') }}</span>
+                </div>
+            </div>
+
+            <div class="card-metrics">
+                <div class="metric-item">
+                    <span class="m-value">{{ item.workouts }}</span>
+                    <span class="m-label">Workouts</span>
+                </div>
+                <div class="metric-item">
+                    <span class="m-value">{{ item.calories }}</span>
+                    <span class="m-label">Calories</span>
+                </div>
+                <div class="metric-item">
+                    <span class="m-value">{{ item.meals }}</span>
+                    <span class="m-label">Meals</span>
+                </div>
+            </div>
+
+            <div class="card-progress-section">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small font-weight-bold">Goal Completion</span>
+                    <span class="small text-success">{{ item.goal_progress }}%</span>
+                </div>
+                <div class="progress-bar" style="--p: {{ item.goal_progress ~ '%' }};">
+                    <div class="progress-fill" style="width: var(--p);"></div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <span class="last-active">
+                    <i class="fas fa-clock"></i> {{ item.last_active }}
+                </span>
+                <a href="{{ url_for('admin.user_detail', user_id=item.user.id) }}" class="btn-view-profile">
+                    View Details <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="empty-state">
+                <i class="fas fa-user-slash fa-3x mb-3"></i>
+                <p>No active user progress data found.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .performance-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    .performance-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #f0f0f0;
+    }
+
+    .performance-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(0, 200, 150, 0.12);
+        border-color: #00c896;
+    }
+
+    .card-top {
+        text-align: center;
+        margin-bottom: 25px;
+        position: relative;
+    }
+
+    .perf-score-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 14px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .perf-score-badge.high {
+        background: linear-gradient(135deg, #00c896, #00a87d);
+    }
+
+    .perf-score-badge.medium {
+        background: linear-gradient(135deg, #ffb703, #fb8500);
+    }
+
+    .perf-score-badge.low {
+        background: linear-gradient(135deg, #ff5c5c, #ff4444);
+    }
+
+    .avatar-large {
+        width: 70px;
+        height: 70px;
+        background: #f4fff9;
+        color: #00c896;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 auto 15px;
+        border: 2px solid #e6fff3;
+    }
+
+    .user-info-large h4 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #1f2d2a;
+    }
+
+    .user-tag {
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .card-metrics {
+        display: flex;
+        justify-content: space-around;
+        background: #fcfcfc;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .metric-item {
+        text-align: center;
+    }
+
+    .m-value {
+        display: block;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1f2d2a;
+    }
+
+    .m-label {
+        font-size: 11px;
+        color: #666;
+    }
+
+    .card-progress-section {
+        margin-bottom: 25px;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #f0f0f0;
+        padding-top: 15px;
+    }
+
+    .last-active {
+        font-size: 11px;
+        color: #888;
+    }
+
+    .btn-view-profile {
+        font-size: 12px;
+        color: #00c896;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-view-profile:hover {
+        color: #00a87d;
+        transform: translateX(3px);
+    }
+
+    .progress-bar {
+        background-color: #e9ecef;
+        border-radius: 10px;
+        height: 8px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        background: linear-gradient(90deg, #00c896, #00a87d);
+        height: 100%;
+        transition: width 0.6s ease;
+    }
+</style>
+{% endblock %}

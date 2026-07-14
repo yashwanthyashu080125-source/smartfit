@@ -1,0 +1,530 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% block title %}Goals - SmartFit{% endblock %}
+
+{% block content %}
+
+<div class="goals-wrapper animate-fade-in">
+    <!-- Minimalist Header -->
+    <div class="goals-header">
+        <div class="goals-header-left">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-muted text-decoration-none small">Dashboard</a></li>
+                    <li class="breadcrumb-item active small" aria-current="page">Goals</li>
+                </ol>
+            </nav>
+            <h1 class="goals-page-title">Your Ambitions</h1>
+            <p class="text-muted mb-0">Track your fitness milestones and personal growth.</p>
+        </div>
+        <div class="goals-header-right">
+            <button class="btn btn-dark-premium px-4 py-2 rounded-3 shadow-sm" id="openGoalModalBtn">
+                <i class="fas fa-plus me-2 small"></i> New Goal
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Active Goals Section -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-700 text-dark">Active Objectives</h5>
+                    <span class="badge-sync-pro animate-pulse">
+                        <i class="fas fa-circle me-2"></i>Smart Sync Active
+                    </span>
+                </div>
+                
+                <div class="card-body p-0">
+                    {% for goal in active_goals %}
+                    <div class="goal-item-minimal border-top p-4 animate-up" style="--delay: {{ loop.index0 * 0.1 }}s">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex gap-3 align-items-center">
+                                <div class="goal-icon-pro {{ goal.goal_type }}">
+                                    {% if goal.goal_type == 'weight_loss' %}<i class="fas fa-weight"></i>
+                                    {% elif goal.goal_type == 'muscle_gain' %}<i class="fas fa-dumbbell"></i>
+                                    {% elif goal.goal_type == 'fitness' %}<i class="fas fa-running"></i>
+                                    {% else %}<i class="fas fa-apple-alt"></i>{% endif %}
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-700 text-dark">{{ goal.title }}</h6>
+                                    <span class="text-muted small">{{ goal.goal_type | replace('_', ' ') | title }}</span>
+                                </div>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3">
+                                    <li>
+                                        <form action="{{ url_for('dashboard.delete_goal', goal_id=goal.id) }}" method="POST">
+                                            <button type="submit" class="dropdown-item text-danger py-2">
+                                                <i class="fas fa-trash-alt me-2"></i> Remove Goal
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="progress-container-pro mb-4">
+                            {% set progress = goal.calculate_progress() %}
+                            {% set current_val = goal.get_current_stats() %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-600 text-muted">Progress</span>
+                                <span class="small fw-700 text-orange">{{ progress|round|int }}%</span>
+                            </div>
+                            <div class="progress-bar-minimal">
+                                <div class="progress-fill" style="--progress: {{ progress }}%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span class="text-muted-xs">Tracked: {{ current_val|round(1) }} {{ goal.unit or "" }}</span>
+                                <span class="text-muted-xs">Target: {{ goal.target_value }} {{ goal.unit or "" }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="goal-deadline-pro">
+                                {% if goal.target_date %}
+                                <i class="far fa-calendar-alt me-1"></i> {{ goal.target_date.strftime('%b %d, %Y') }}
+                                {% else %}
+                                <i class="fas fa-infinity me-1"></i> No deadline
+                                {% endif %}
+                            </div>
+                            <form action="{{ url_for('dashboard.complete_goal', goal_id=goal.id) }}" method="POST">
+                                <button type="submit" class="btn btn-outline-orange-sm">
+                                    Mark Achieved
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-5 text-center">
+                        <div class="text-muted mb-3 opacity-25"><i class="fas fa-flag-checkered fa-4x"></i></div>
+                        <h6 class="text-muted">No active goals found</h6>
+                        <button class="btn btn-link text-orange fw-600 text-decoration-none small" id="openGoalModalBtnEmpty">Create your first goal</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievement Sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 py-4 px-4">
+                    <h5 class="mb-0 fw-700 text-dark">Achievements</h5>
+                </div>
+                <div class="card-body px-4">
+                    {% for goal in completed_goals %}
+                    <div class="achievement-item-pro mb-3 animate-scale" style="--delay: {{ loop.index0 * 0.1 }}s">
+                        <div class="achievement-trophy">
+                            <i class="fas fa-award"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 fw-600 text-dark">{{ goal.title }}</h6>
+                            <p class="text-muted-xs mb-0">Achieved {{ goal.completed_at.strftime('%b %d') if goal.completed_at else 'Recently' }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <p class="text-muted small mb-0">Goals you complete will appear here as trophies.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Goal Modal (NOT using Bootstrap modal to avoid z-index conflicts) -->
+<div class="goal-modal-overlay" id="goalModalOverlay">
+    <div class="goal-modal-dialog">
+        <div class="goal-modal-content">
+            <form action="{{ url_for('dashboard.goals') }}" method="POST">
+                <div class="goal-modal-header">
+                    <h5 class="fw-800 text-dark mb-0">Create New Goal</h5>
+                    <button type="button" class="goal-modal-close" id="closeGoalModalBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="goal-modal-body">
+                    <div class="mb-4">
+                        <label class="form-label-pro">Objective Title</label>
+                        <input type="text" name="title" class="form-input-pro" placeholder="e.g. Weekly Cardio King" required>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label-pro">Goal Type</label>
+                            <select name="goal_type" class="form-select-pro" required>
+                                <option value="weight_loss">Weight Loss</option>
+                                <option value="muscle_gain">Muscle Gain</option>
+                                <option value="fitness">Fitness</option>
+                                <option value="nutrition">Nutrition</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-pro">Target Value</label>
+                            <input type="number" step="0.1" name="target_value" class="form-input-pro" placeholder="0.0">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label-pro">Unit</label>
+                            <input type="text" name="unit" class="form-input-pro" placeholder="kg, km, etc.">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-pro">Target Date</label>
+                            <input type="date" name="target_date" class="form-input-pro">
+                        </div>
+                    </div>
+                </div>
+                <div class="goal-modal-footer">
+                    <button type="submit" class="btn btn-orange-pro w-100 py-3 rounded-3 fw-700 shadow-sm">
+                        Create Achievement Pathway
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --sf-orange: #f97316;
+        --sf-orange-dark: #ea580c;
+        --sf-orange-light: #fff7ed;
+        --sf-gray-soft: #f8fafc;
+        --sf-border: #f1f5f9;
+        --sf-text-dark: #0f172a;
+        --sf-text-muted: #64748b;
+    }
+
+    .goals-wrapper {
+        padding: 10px;
+    }
+
+    /* Page Header - Responsive Flex */
+    .goals-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 2rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .goals-header-left {
+        flex: 1;
+        min-width: 0;
+    }
+    .goals-page-title {
+        font-weight: 800;
+        color: var(--sf-text-dark);
+        margin-bottom: 4px;
+        font-size: 2rem;
+        white-space: nowrap;
+        overflow: visible;
+    }
+    .goals-header-right {
+        flex-shrink: 0;
+    }
+
+    /* ── Custom Modal (avoids Bootstrap z-index / overflow issues) ── */
+    .goal-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        animation: goalFadeIn 0.25s ease;
+    }
+    .goal-modal-overlay.open {
+        display: flex;
+    }
+    .goal-modal-dialog {
+        width: 100%;
+        max-width: 520px;
+        margin: 1rem;
+    }
+    .goal-modal-content {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        animation: goalSlideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .goal-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 24px 0;
+    }
+    .goal-modal-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: #f1f5f9;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.85rem;
+    }
+    .goal-modal-close:hover {
+        background: #fee2e2;
+        color: #ef4444;
+    }
+    .goal-modal-body {
+        padding: 24px;
+    }
+    .goal-modal-footer {
+        padding: 0 24px 24px;
+    }
+
+    @keyframes goalFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes goalSlideUp {
+        from { transform: translateY(30px) scale(0.95); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    /* Professional Buttons */
+    .btn-dark-premium {
+        background: var(--sf-text-dark);
+        color: white;
+        border: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-dark-premium:hover {
+        background: #000;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .btn-orange-pro {
+        background: var(--sf-orange);
+        color: white;
+        border: none;
+        transition: all 0.3s;
+    }
+    .btn-orange-pro:hover {
+        background: var(--sf-orange-dark);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline-orange-sm {
+        color: var(--sf-orange);
+        border: 1.5px solid var(--sf-orange);
+        background: transparent;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 6px 16px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    .btn-outline-orange-sm:hover {
+        background: var(--sf-orange);
+        color: white;
+    }
+
+    /* Goal Items */
+    .goal-item-minimal {
+        transition: background 0.3s ease;
+    }
+    .goal-item-minimal:hover {
+        background: #fafafa;
+    }
+
+    .goal-icon-pro {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .goal-icon-pro.weight_loss { background: #fef2f2; color: #ef4444; }
+    .goal-icon-pro.muscle_gain { background: #f0f9ff; color: #0ea5e9; }
+    .goal-icon-pro.fitness { background: #f0fdf4; color: #22c55e; }
+    .goal-icon-pro.nutrition { background: #fffbeb; color: #f59e0b; }
+
+    /* Progress Bar */
+    .progress-bar-minimal {
+        height: 8px;
+        background: #f1f5f9;
+        border-radius: 100px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        width: var(--progress, 0%);
+        background: var(--sf-orange);
+        border-radius: 100px;
+        transition: width 1s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    .text-orange { color: var(--sf-orange); }
+    .text-muted-xs { font-size: 0.7rem; color: var(--sf-text-muted); font-weight: 500; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+
+    .badge-sync-pro {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #059669;
+        background: #ecfdf5;
+        padding: 4px 12px;
+        border-radius: 100px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .goal-deadline-pro {
+        font-size: 0.75rem;
+        color: var(--sf-text-muted);
+        font-weight: 600;
+    }
+
+    /* Achievement Items */
+    .achievement-item-pro {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--sf-gray-soft);
+        border: 1px solid var(--sf-border);
+    }
+    .achievement-trophy {
+        width: 36px;
+        height: 36px;
+        background: #fff;
+        color: #fbbf24;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        flex-shrink: 0;
+    }
+
+    /* Forms */
+    .form-label-pro {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--sf-text-muted);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .form-input-pro, .form-select-pro {
+        width: 100%;
+        padding: 12px 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+    .form-input-pro:focus, .form-select-pro:focus {
+        background: #fff;
+        border-color: var(--sf-orange);
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.05);
+    }
+
+    /* Animations */
+    .animate-pulse {
+        animation: goalsPulse 2s infinite;
+    }
+    @keyframes goalsPulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
+
+    .animate-scale {
+        animation: goalsScaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        animation-delay: var(--delay, 0s);
+    }
+    @keyframes goalsScaleIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .animate-up {
+        animation: goalsSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        animation-delay: var(--delay, 0s);
+    }
+    @keyframes goalsSlideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .animate-fade-in {
+        animation: goalsFadeIn 0.5s ease both;
+    }
+    @keyframes goalsFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .goals-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .goals-page-title {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<script>
+(function() {
+    const overlay = document.getElementById('goalModalOverlay');
+    const openBtn = document.getElementById('openGoalModalBtn');
+    const openBtnEmpty = document.getElementById('openGoalModalBtnEmpty');
+    const closeBtn = document.getElementById('closeGoalModalBtn');
+
+    function openModal() {
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeModal() {
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (openBtnEmpty) openBtnEmpty.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+    // Close on overlay click
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeModal();
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.classList.contains('open')) {
+            closeModal();
+        }
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}SmartFit Dashboard{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <!-- Page-specific head content -->
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+
+    <!-- Mobile Toggle Button -->
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="dashboard-wrapper">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+
+            <div class="sidebar-header">
+                <a href="{{ url_for('dashboard.index') }}" class="sidebar-brand">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>SmartFit</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="{{ url_for('dashboard.index') }}" class="nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+                    <i class="fas fa-home"></i><span>Dashboard</span>
+                </a>
+
+                <a href="{{ url_for('dashboard.analytics') }}" class="nav-item {% if request.endpoint == 'dashboard.analytics' %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i><span>Analytics</span>
+                </a>
+
+                <a href="{{ url_for('dashboard.performance') }}" class="nav-item {% if request.endpoint == 'dashboard.performance' %}active{% endif %}">
+                    <i class="fas fa-dumbbell"></i><span>Performance</span>
+                </a>
+
+
+
+                <a href="{{ url_for('dashboard.nutrition') }}" class="nav-item {% if request.endpoint == 'dashboard.nutrition' %}active{% endif %}">
+                    <i class="fas fa-utensils"></i><span>Nutrition</span>
+                </a>
+
+                <a href="{{ url_for('dashboard.goals') }}" class="nav-item {% if request.endpoint == 'dashboard.goals' %}active{% endif %}">
+                    <i class="fas fa-bullseye"></i><span>Goals</span>
+                </a>
+
+                <a href="{{ url_for('dashboard.notifications') }}" class="nav-item {% if request.endpoint == 'dashboard.notifications' %}active{% endif %}">
+                    <i class="fas fa-bell"></i><span>Notifications</span>
+                    {% if unread_notifs_count > 0 %}
+                    <span class="badge rounded-pill bg-danger ms-auto" style="font-size: 10px;">{{ unread_notifs_count }}</span>
+                    {% endif %}
+                </a>
+
+                <a href="{{ url_for('dashboard.history') }}" class="nav-item {% if request.endpoint == 'dashboard.history' %}active{% endif %}">
+                    <i class="fas fa-history"></i><span>History</span>
+                </a>
+
+                <a href="{{ url_for('dashboard.support') }}" class="nav-item {% if request.endpoint == 'dashboard.support' %}active{% endif %}">
+                    <i class="fas fa-life-ring"></i><span>Support</span>
+                </a>
+
+                <a href="{{ url_for('dashboard.profile') }}" class="nav-item {% if request.endpoint == 'dashboard.profile' %}active{% endif %}">
+                    <i class="fas fa-user"></i><span>Profile</span>
+                </a>
+
+                <a href="{{ url_for('dashboard.settings') }}" class="nav-item {% if request.endpoint == 'dashboard.settings' %}active{% endif %}">
+                    <i class="fas fa-cog"></i><span>Settings</span>
+                </a>
+
+                <a href="{{ url_for('auth.logout') }}" class="nav-item logout-item">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </a>
+
+            </nav>
+
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+
+            <!-- ── Professional Top Header Bar ── -->
+            <header class="dash-topbar">
+
+                <!-- Left: Page greeting -->
+                <div class="topbar-left">
+                    <p class="topbar-greeting">
+                        👋 Hello, <strong>{{ current_user.name.split()[0] }}</strong>
+                    </p>
+                    <p class="topbar-date" id="topbarDate"></p>
+                </div>
+
+                <!-- Right: Notification + Avatar -->
+                <div class="topbar-right">
+
+                    <!-- Notification bell with Dropdown -->
+                    <div class="dropdown">
+                        <button class="topbar-icon-btn dropdown-toggle no-caret" type="button" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                            <i class="fas fa-bell"></i>
+                            {% if unread_notifs_count > 0 %}
+                            <span class="notif-dot"></span>
+                            {% endif %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end notif-dropdown animate-fade-in" aria-labelledby="notifDropdown">
+                            <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                <span>Notifications</span>
+                                <span class="badge bg-primary">{{ unread_notifs_count }} New</span>
+                            </li>
+                            <div class="notif-scroll-area">
+                                {% for notif in recent_notifs %}
+                                <li>
+                                    <a class="dropdown-item notif-dropdown-item {% if not notif.is_read %}unread{% endif %}" href="{{ url_for('dashboard.notifications') }}">
+                                        <div class="notif-icon-circle {{ notif.type }}">
+                                            <i class="fas {% if notif.type == 'warning' %}fa-exclamation-triangle{% elif notif.type == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
+                                        </div>
+                                        <div class="notif-content">
+                                            <p class="notif-title">{{ notif.title }}</p>
+                                            <p class="notif-time">{{ notif.created_at.strftime('%H:%M') }}</p>
+                                        </div>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="p-4 text-center">
+                                    <p class="text-muted small mb-0">No new notifications</p>
+                                </li>
+                                {% endfor %}
+                            </div>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-center view-all-notifs" href="{{ url_for('dashboard.notifications') }}">View All Notifications</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Avatar — click opens profile card -->
+                    <div class="avatar-wrap" id="avatarWrap">
+                        {% if current_user.profile_pic and current_user.profile_pic != 'default.png' %}
+                        <img src="{{ url_for('static', filename='uploads/profiles/' + current_user.profile_pic) }}"
+                             class="topbar-avatar" alt="Profile" id="topbarAvatar">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/default.png') }}"
+                             class="topbar-avatar" alt="Profile" id="topbarAvatar">
+                        {% endif %}
+                        <span class="avatar-status"></span>
+                    </div>
+
+                </div>
+            </header>
+
+            <!-- ── Profile Detail Card (slide-in panel) ── -->
+            <div class="profile-card-overlay" id="profileOverlay"></div>
+            <div class="profile-card-panel" id="profilePanel">
+
+                <!-- Card top gradient with avatar -->
+                <div class="pcard-hero">
+                    <button class="pcard-close" id="pcardClose"><i class="fas fa-times"></i></button>
+                    {% if current_user.profile_pic and current_user.profile_pic != 'default.png' %}
+                    <img src="{{ url_for('static', filename='uploads/profiles/' + current_user.profile_pic) }}"
+                         class="pcard-avatar" alt="Profile">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/default.png') }}"
+                         class="pcard-avatar" alt="Profile">
+                    {% endif %}
+                    <h3 class="pcard-name">{{ current_user.name }}</h3>
+                    <p class="pcard-email">{{ current_user.email }}</p>
+                    <span class="pcard-role-badge">
+                        <i class="fas fa-shield-alt"></i> {{ current_user.role | title }}
+                    </span>
+                </div>
+
+                <!-- Quick stats row -->
+                <div class="pcard-stats">
+                    <div class="pcard-stat">
+                        <span class="pstat-val">{{ current_user.age or '—' }}</span>
+                        <span class="pstat-lbl">Age</span>
+                    </div>
+                    <div class="pcard-stat">
+                        <span class="pstat-val">{{ current_user.weight or '—' }}</span>
+                        <span class="pstat-lbl">kg</span>
+                    </div>
+                    <div class="pcard-stat">
+                        <span class="pstat-val">{{ current_user.height or '—' }}</span>
+                        <span class="pstat-lbl">cm</span>
+                    </div>
+                    {% set _bmi = current_user.calculate_bmi() %}
+                    <div class="pcard-stat">
+                        <span class="pstat-val">{{ _bmi or '—' }}</span>
+                        <span class="pstat-lbl">BMI</span>
+                    </div>
+                </div>
+
+                <!-- Info rows -->
+                <div class="pcard-info">
+                    {% if current_user.gender %}
+                    <div class="pinfo-row">
+                        <i class="fas fa-venus-mars"></i>
+                        <span>{{ current_user.gender | title }}</span>
+                    </div>
+                    {% endif %}
+                    {% if current_user.activity_level %}
+                    <div class="pinfo-row">
+                        <i class="fas fa-running"></i>
+                        <span>{{ current_user.activity_level | replace('_', ' ') | title }} Activity</span>
+                    </div>
+                    {% endif %}
+                    {% if current_user.preferred_units %}
+                    <div class="pinfo-row">
+                        <i class="fas fa-ruler-combined"></i>
+                        <span>{{ current_user.preferred_units | title }} Units</span>
+                    </div>
+                    {% endif %}
+                    {% if current_user.created_at %}
+                    <div class="pinfo-row">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Member since {{ current_user.created_at.strftime('%b %Y') }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Action links -->
+                <div class="pcard-actions">
+                    <a href="{{ url_for('dashboard.profile') }}" class="pcard-action-btn pcard-primary">
+                        <i class="fas fa-user-edit"></i> Edit Profile
+                    </a>
+                    <a href="{{ url_for('dashboard.settings') }}" class="pcard-action-btn pcard-secondary">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="pcard-action-btn pcard-danger">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+
+            </div>
+
+            <style>
+            /* ── Top Bar ── */
+            .dash-topbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: #fff;
+                border-radius: 16px;
+                padding: 14px 24px;
+                margin-bottom: 30px;
+                box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            }
+            .topbar-left { display: flex; flex-direction: column; gap: 2px; }
+            .topbar-greeting { margin: 0; font-size: 1rem; color: #1e293b; }
+            .topbar-greeting strong { color: #f97316; }
+            .topbar-date { margin: 0; font-size: 0.78rem; color: #94a3b8; }
+            .topbar-right { display: flex; align-items: center; gap: 14px; }
+
+            .topbar-icon-btn {
+                position: relative;
+                background: #f8fafc;
+                border: none;
+                width: 40px; height: 40px;
+                border-radius: 10px;
+                font-size: 1rem;
+                color: #64748b;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s;
+                display: flex; align-items: center; justify-content: center;
+            }
+            .topbar-icon-btn:hover { background: #fff7ed; color: #f97316; }
+            .notif-dot {
+                position: absolute;
+                top: 7px; right: 8px;
+                width: 9px; height: 9px;
+                border-radius: 50%;
+                background: #ef4444;
+                border: 2px solid #fff;
+                animation: pulse 2s infinite;
+            }
+
+            /* Notification Dropdown Styles */
+            .notif-dropdown {
+                width: 320px;
+                padding: 0;
+                border-radius: 14px;
+                border: none;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+                margin-top: 10px !important;
+            }
+            .notif-dropdown .dropdown-header {
+                padding: 15px 20px;
+                background: #f8fafc;
+                border-radius: 14px 14px 0 0;
+                font-weight: 600;
+                color: #1e293b;
+            }
+            .notif-scroll-area { max-height: 350px; overflow-y: auto; }
+            .notif-dropdown-item {
+                display: flex !important;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 20px !important;
+                border-bottom: 1px solid #f1f5f9;
+                white-space: normal !important;
+            }
+            .notif-dropdown-item.unread { background: #fdf4ff; }
+            .notif-dropdown-item:hover { background: #f8fafc; }
+            .notif-icon-circle {
+                width: 36px; height: 36px;
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                flex-shrink: 0;
+                font-size: 0.9rem;
+            }
+            .notif-icon-circle.info { background: #e0f2fe; color: #0ea5e9; }
+            .notif-icon-circle.success { background: #dcfce7; color: #10b981; }
+            .notif-icon-circle.warning { background: #fef3c7; color: #f59e0b; }
+            .notif-content { flex-grow: 1; min-width: 0; }
+            .notif-title {
+                margin: 0; font-size: 0.85rem; font-weight: 600; color: #1e293b;
+                overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+                -webkit-line-clamp: 1;
+                line-clamp: 1;
+                -webkit-box-orient: vertical;
+            }
+            .notif-time { margin: 0; font-size: 0.75rem; color: #94a3b8; }
+            .view-all-notifs { color: #f97316 !important; font-weight: 600; font-size: 0.85rem; padding: 12px !important; }
+            .no-caret::after { display: none !important; }
+
+            @keyframes pulse {
+                0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+                70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+                100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            }
+
+            .avatar-wrap {
+                position: relative;
+                cursor: pointer;
+            }
+            .topbar-avatar {
+                width: 44px; height: 44px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2.5px solid #f97316;
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+            .avatar-wrap:hover .topbar-avatar {
+                transform: scale(1.07);
+                box-shadow: 0 0 0 4px rgba(249,115,22,0.2);
+            }
+            .avatar-status {
+                position: absolute;
+                bottom: 2px; right: 2px;
+                width: 10px; height: 10px;
+                border-radius: 50%;
+                background: #10b981;
+                border: 2px solid #fff;
+            }
+
+            /* ── Profile Card Overlay ── */
+            .profile-card-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(15,23,42,0.35);
+                z-index: 1040;
+                backdrop-filter: blur(2px);
+                animation: fadeIn 0.2s;
+            }
+            .profile-card-overlay.open { display: block; }
+
+            /* ── Profile Card Panel ── */
+            .profile-card-panel {
+                position: fixed;
+                top: 0; right: -380px;
+                width: 340px;
+                height: 100vh;
+                background: #fff;
+                z-index: 1050;
+                box-shadow: -8px 0 40px rgba(0,0,0,0.15);
+                border-radius: 20px 0 0 20px;
+                overflow-y: auto;
+                transition: right 0.32s cubic-bezier(0.4,0,0.2,1);
+                display: flex;
+                flex-direction: column;
+            }
+            .profile-card-panel.open { right: 0; }
+
+            /* Hero */
+            .pcard-hero {
+                background: linear-gradient(135deg, #f97316 0%, #fb923c 60%, #fbbf24 100%);
+                padding: 32px 24px 24px;
+                text-align: center;
+                position: relative;
+            }
+            .pcard-close {
+                position: absolute;
+                top: 16px; left: 16px;
+                background: rgba(255,255,255,0.2);
+                border: none;
+                color: #fff;
+                width: 32px; height: 32px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 0.85rem;
+                display: flex; align-items: center; justify-content: center;
+                transition: background 0.2s;
+            }
+            .pcard-close:hover { background: rgba(255,255,255,0.35); }
+            .pcard-avatar {
+                width: 88px; height: 88px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 4px solid rgba(255,255,255,0.9);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+                margin-bottom: 12px;
+            }
+            .pcard-name {
+                margin: 0 0 4px;
+                color: #fff;
+                font-size: 1.15rem;
+                font-weight: 700;
+            }
+            .pcard-email {
+                margin: 0 0 10px;
+                color: rgba(255,255,255,0.85);
+                font-size: 0.82rem;
+            }
+            .pcard-role-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                background: rgba(255,255,255,0.22);
+                color: #fff;
+                padding: 3px 12px;
+                border-radius: 20px;
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            /* Stats Row */
+            .pcard-stats {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0;
+                border-bottom: 1px solid #f1f5f9;
+            }
+            .pcard-stat {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 16px 8px;
+                border-right: 1px solid #f1f5f9;
+            }
+            .pcard-stat:last-child { border-right: none; }
+            .pstat-val {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #1e293b;
+            }
+            .pstat-lbl {
+                font-size: 0.7rem;
+                color: #94a3b8;
+                font-weight: 500;
+                margin-top: 2px;
+            }
+
+            /* Info Rows */
+            .pcard-info {
+                padding: 16px 24px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                border-bottom: 1px solid #f1f5f9;
+            }
+            .pinfo-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 0.875rem;
+                color: #475569;
+            }
+            .pinfo-row i {
+                width: 20px;
+                text-align: center;
+                color: #f97316;
+                font-size: 0.85rem;
+            }
+
+            /* Action Buttons */
+            .pcard-actions {
+                padding: 20px 24px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-top: auto;
+            }
+            .pcard-action-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                padding: 11px;
+                border-radius: 12px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                text-decoration: none;
+                transition: opacity 0.2s, transform 0.15s;
+            }
+            .pcard-action-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+            .pcard-primary {
+                background: linear-gradient(135deg, #f97316, #fb923c);
+                color: #fff;
+            }
+            .pcard-secondary {
+                background: #f1f5f9;
+                color: #334155;
+            }
+            .pcard-danger {
+                background: #fef2f2;
+                color: #ef4444;
+            }
+
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            </style>
+
+            <script>
+            // Live date in topbar
+            (function() {
+                const el = document.getElementById('topbarDate');
+                if (el) {
+                    const d = new Date();
+                    el.textContent = d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+                }
+            })();
+
+            // Profile card open/close
+            const avatarWrap   = document.getElementById('avatarWrap');
+            const profilePanel = document.getElementById('profilePanel');
+            const profileOverlay = document.getElementById('profileOverlay');
+            const pcardClose   = document.getElementById('pcardClose');
+
+            function openProfileCard() {
+                profilePanel.classList.add('open');
+                profileOverlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+            function closeProfileCard() {
+                profilePanel.classList.remove('open');
+                profileOverlay.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+
+            if (avatarWrap)    avatarWrap.addEventListener('click', openProfileCard);
+            if (pcardClose)    pcardClose.addEventListener('click', closeProfileCard);
+            if (profileOverlay) profileOverlay.addEventListener('click', closeProfileCard);
+            </script>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Page Content -->
+            {% block content %}{% endblock %}
+
+        </main>
+
+    </div>
+
+    <!-- Modals Block -->
+    {% block modals %}{% endblock %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+    <!-- Page-specific scripts -->
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

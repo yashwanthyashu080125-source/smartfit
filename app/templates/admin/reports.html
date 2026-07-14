@@ -1,0 +1,246 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}System Reports & Exports{% endblock %}
+
+{% block content %}
+<div class="reports-container animate-fade-in">
+    <!-- Quick Statistics Summary -->
+    <div class="stats-grid">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-details">
+                <h3>Total Members</h3>
+                <div class="stat-number">{{ total_users }}</div>
+                <div class="stat-change positive">Overall database size</div>
+            </div>
+        </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-icon"><i class="fas fa-dumbbell"></i></div>
+            <div class="stat-details">
+                <h3>Total Activities</h3>
+                <div class="stat-number">{{ total_workouts + total_meals }}</div>
+                <div class="stat-change positive">Combined logs recorded</div>
+            </div>
+        </div>
+        <div class="stat-card stat-card-info">
+            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="stat-details">
+                <h3>Engagement Rate</h3>
+                <div class="stat-number">{{ engagement_rate }}</div>
+                <div class="stat-change positive">Workouts per member</div>
+            </div>
+        </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div class="stat-details">
+                <h3>Weekly Growth</h3>
+                <div class="stat-number">+{{ weekly_new_users }}</div>
+                <div class="stat-change positive">New registrations</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Generation Section -->
+    <div class="section-header mt-5">
+        <h3 class="section-title"><i class="fas fa-file-export"></i> Data Exports & Previews</h3>
+        <p class="section-subtitle">Generate, preview, and download comprehensive system reports</p>
+    </div>
+
+    <div class="reports-grid">
+        <div class="report-card">
+            <div class="report-icon"><i class="fas fa-users"></i></div>
+            <h4>User Directory</h4>
+            <p>Full user profiles including metrics, account status, and demographic data.</p>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-success flex-grow-1" data-bs-toggle="modal" data-bs-target="#userReportModal">
+                    <i class="fas fa-eye"></i> View
+                </button>
+                <a href="{{ url_for('admin.export_users') }}" class="btn btn-primary flex-grow-1">
+                    <i class="fas fa-download"></i> Download
+                </a>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <div class="report-icon"><i class="fas fa-dumbbell"></i></div>
+            <h4>Workout History</h4>
+            <p>Comprehensive log of all user workout sessions, calories burned, and performance.</p>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-success flex-grow-1" onclick="alert('Workout preview is being prepared.')">
+                    <i class="fas fa-eye"></i> View
+                </button>
+                <button class="btn btn-primary flex-grow-1" onclick="alert('Workout export is being prepared and will be sent to your email.')">
+                    <i class="fas fa-envelope"></i> Export
+                </button>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <div class="report-icon"><i class="fas fa-utensils"></i></div>
+            <h4>Nutrition Summary</h4>
+            <p>Detailed breakdown of meal plans, dietary tracking, and user nutritional habits.</p>
+            <div class="d-flex gap-2">
+                <button class="btn btn-secondary flex-grow-1" disabled>
+                    <i class="fas fa-lock"></i> Coming Soon
+                </button>
+            </div>
+        </div>
+
+        <div class="report-card">
+            <div class="report-icon"><i class="fas fa-shield-alt"></i></div>
+            <h4>Security Log</h4>
+            <p>Audit trail of administrative actions, login attempts, and system modifications.</p>
+            <div class="d-flex gap-2">
+                <button class="btn btn-secondary flex-grow-1" disabled>
+                    <i class="fas fa-clock"></i> Weekly Auto-Gen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health Section -->
+    <div class="row mt-5">
+        <div class="col-md-6 mb-4">
+            <div class="table-container h-100 animate-slide-up">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h4 class="section-title"><i class="fas fa-heartbeat"></i> System Health</h4>
+                </div>
+                <div class="card-body">
+                    <div class="metric-row">
+                        <span>Database Connectivity</span>
+                        <span class="badge badge-success">Optimal</span>
+                    </div>
+                    <div class="metric-row">
+                        <span>API Response Time</span>
+                        <span class="badge badge-success">42ms</span>
+                    </div>
+                    <div class="metric-row">
+                        <span>Storage Utilization</span>
+                        <div style="width: 100px;">
+                            <div class="progress-bar" style="--p: 15%;">
+                                <div class="progress-fill" style="width: var(--p);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric-row">
+                        <span>Last Backup</span>
+                        <span class="text-muted small">2 hours ago</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="table-container h-100 animate-slide-up" style="animation-delay: 0.3s;">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h4 class="section-title"><i class="fas fa-tasks"></i> Weekly Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="schedule-item">
+                        <div>
+                            <strong>New Workouts</strong>
+                            <p class="text-muted small mb-0">Total sessions this week</p>
+                        </div>
+                        <span class="stat-number" style="font-size: 20px;">{{ weekly_workouts }}</span>
+                    </div>
+                    <div class="schedule-item">
+                        <div>
+                            <strong>Goal Completions</strong>
+                            <p class="text-muted small mb-0">Users reaching targets</p>
+                        </div>
+                        <span class="stat-number" style="font-size: 20px;">{{ total_goals }}</span>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">Last updated: {{ last_updated }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Preview Modal -->
+<div class="modal fade" id="userReportModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-file-alt"></i> User Directory Report Preview</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive" style="max-height: 60vh;">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Joined</th>
+                                <th>Weight</th>
+                                <th>Height</th>
+                                <th>BMI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users_preview %}
+                            <tr>
+                                <td>{{ u.name }}</td>
+                                <td>{{ u.email }}</td>
+                                <td>{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ u.weight or 'N/A' }} kg</td>
+                                <td>{{ u.height or 'N/A' }} cm</td>
+                                <td>{{ u.calculate_bmi() or 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 text-center bg-light border-top">
+                    <p class="text-muted small mb-0">Showing latest 20 users. Download the full CSV for complete data.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close Preview</button>
+                <a href="{{ url_for('admin.export_users') }}" class="btn btn-success">
+                    <i class="fas fa-download"></i> Download Full CSV
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .metric-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f1f1;
+    }
+    .metric-row:last-child {
+        border-bottom: none;
+    }
+    .report-card {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .btn-outline-success {
+        border: 2px solid #00c896;
+        color: #00c896;
+        background: transparent;
+        font-weight: 600;
+    }
+    .btn-outline-success:hover {
+        background: #00c896;
+        color: white;
+    }
+    .sticky-top {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #f8f9fa;
+    }
+    .modal-xl {
+        max-width: 90%;
+    }
+</style>
+{% endblock %}

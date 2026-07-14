@@ -1,0 +1,116 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+
+<div class="page-header-actions animate-fade-in">
+
+    <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search users..." id="userSearch">
+    </div>
+
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+        <i class="fas fa-plus"></i> Add New User
+    </button>
+
+</div>
+
+
+<div class="table-container animate-slide-up">
+
+    <div class="table-responsive">
+
+        <table class="data-table" id="usersTable">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for user in users %}
+
+                <tr>
+
+                    <td>{{ user.id }}</td>
+
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar-small">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+
+                            <span>{{ user.name }}</span>
+                        </div>
+                    </td>
+
+                    <td>{{ user.email }}</td>
+
+                    <td>
+                        <span class="badge badge-{{ 'admin' if user.role == 'admin' else 'user' }}">
+                            {{ user.role|title }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <span class="status-badge {{ 'active' if user.is_active else 'inactive' }}">
+                            {{ "Active" if user.is_active else "Blocked" }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}
+                    </td>
+
+                    <td>
+
+                        <div class="action-buttons">
+
+                            <!-- VIEW USER -->
+                            <a href="{{ url_for('admin.user_detail', user_id=user.id) }}"
+                               class="btn-icon btn-primary"
+                               title="View User">
+                                <i class="fas fa-eye"></i>
+                            </a>
+
+
+
+                            <!-- DELETE USER -->
+                            <form action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                                  method="POST"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Delete this user permanently?')">
+
+                                <button type="submit" class="btn-icon btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

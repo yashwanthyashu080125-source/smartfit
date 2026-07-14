@@ -1,0 +1,539 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}Workout & Diet Plans{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function editWorkout(btn) {
+    const id = btn.getAttribute('data-id');
+    const form = document.getElementById('editWorkoutForm');
+    form.action = "/admin/plans/" + id + "/edit-workout";
+    
+    document.getElementById('edit_w_name').value = btn.getAttribute('data-name');
+    document.getElementById('edit_w_desc').value = btn.getAttribute('data-desc');
+    document.getElementById('edit_w_duration').value = btn.getAttribute('data-duration');
+    document.getElementById('edit_w_difficulty').value = btn.getAttribute('data-difficulty');
+    document.getElementById('edit_w_day').value = btn.getAttribute('data-day');
+    document.getElementById('edit_w_calories').value = btn.getAttribute('data-calories');
+    
+    const modalEl = document.getElementById('editWorkoutModal');
+    let modal = bootstrap.Modal.getInstance(modalEl);
+    if (!modal) modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
+
+function editDiet(btn) {
+    const id = btn.getAttribute('data-id');
+    document.getElementById('editDietForm').action = "/admin/plans/" + id + "/edit-diet";
+    document.getElementById('edit_d_name').value = btn.getAttribute('data-name');
+    document.getElementById('edit_d_type').value = btn.getAttribute('data-type');
+    document.getElementById('edit_d_cal').value = btn.getAttribute('data-calories');
+    document.getElementById('edit_d_desc').value = btn.getAttribute('data-desc');
+    document.getElementById('edit_d_time').value = btn.getAttribute('data-time');
+    document.getElementById('edit_d_day').value = btn.getAttribute('data-day');
+    
+    const modalEl = document.getElementById('editDietModal');
+    let modal = bootstrap.Modal.getInstance(modalEl);
+    if (!modal) modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const tabWorkout = document.getElementById('tab-workout');
+    const tabDiet = document.getElementById('tab-diet');
+    const activeTabInput = document.getElementById('active_tab');
+
+    if (tabWorkout && tabDiet && activeTabInput) {
+        tabWorkout.addEventListener('click', function() { activeTabInput.value = 'workout'; });
+        tabDiet.addEventListener('click', function() { activeTabInput.value = 'diet'; });
+    }
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- Edit Workout Modal -->
+<div class="modal fade" id="editWorkoutModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editWorkoutForm" method="POST" enctype="multipart/form-data">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Edit Workout Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Workout Name</label>
+                            <input type="text" class="form-control" name="workout_name" id="edit_w_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Duration (mins)</label>
+                            <input type="number" class="form-control" name="duration" id="edit_w_duration" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Difficulty</label>
+                            <select class="form-select" name="difficulty" id="edit_w_difficulty">
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Calories Burnt</label>
+                            <input type="number" class="form-control" name="calories_to_burn" id="edit_w_calories">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Day of Week</label>
+                            <select class="form-select" name="day_of_week" id="edit_w_day">
+                                {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'All Days'] %}
+                                <option value="{{ d }}">{{ d }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="description" id="edit_w_desc" rows="3"></textarea>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Change Workout Photo</label>
+                            <input type="file" class="form-control" name="workout_image" accept="image/*">
+                            <small class="text-muted">Leave empty to keep the current photo.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Diet Modal -->
+<div class="modal fade" id="editDietModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editDietForm" method="POST">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Edit Meal Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Meal Type</label>
+                            <select class="form-select" name="meal_type" id="edit_d_type">
+                                <option value="Breakfast">Breakfast</option>
+                                <option value="Lunch">Lunch</option>
+                                <option value="Dinner">Dinner</option>
+                                <option value="Snack">Snack</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Intake Time</label>
+                            <input type="text" class="form-control" name="intake_time" id="edit_d_time">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Meal Name</label>
+                            <input type="text" class="form-control" name="meal_name" id="edit_d_name" required>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Calories (kcal)</label>
+                            <input type="number" class="form-control" name="calories" id="edit_d_cal">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Day of Week</label>
+                            <select class="form-select" name="day_of_week" id="edit_d_day">
+                                {% for d in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'All Days'] %}
+                                <option value="{{ d }}">{{ d }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="description" id="edit_d_desc" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="plans-management-container">
+    
+    <!-- Top Section: User Selection & Profile -->
+    <div class="row mb-4">
+        <!-- Left: User List -->
+        <div class="col-md-4">
+            <div class="card selection-card">
+                <div class="card-header">
+                    <i class="fas fa-users"></i> Select Member
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for user in users %}
+                        <a href="{{ url_for('admin.plans', user_id=user.id) }}" 
+                           class="list-group-item list-group-item-action {% if selected_user and selected_user.id == user.id %}active{% endif %}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ user.name }}</h6>
+                                <small>{{ user.role|title }}</small>
+                            </div>
+                            <small class="text-muted">{{ user.email }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Profile & Actions -->
+        <div class="col-md-8">
+            {% if selected_user %}
+            <!-- Profile Summary -->
+            <div class="card profile-summary-card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center">
+                            <div class="user-avatar-large">
+                                {{ selected_user.name[0] }}
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <h4 class="mb-1">{{ selected_user.name }}</h4>
+                            <p class="text-muted mb-2">{{ selected_user.email }}</p>
+                            <div class="stats-inline">
+                                <span class="badge badge-soft-primary">Age: {{ selected_user.age or 'N/A' }}</span>
+                                <span class="badge badge-soft-success">Weight: {{ selected_user.weight or '0' }}kg</span>
+                                <span class="badge badge-soft-info">Goal: {{ selected_user.goal_type or 'General' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <div class="btn-group w-100">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#assignPlanModal">
+                                    <i class="fas fa-plus"></i> Single Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tabs -->
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="planHistoryTab" role="tablist">
+                        <li class="nav-item">
+                            <button type="button" class="nav-link active" data-bs-toggle="tab" data-bs-target="#workout-history">Details of Workout</button>
+                        </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#diet-history">Diet History</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="planHistoryTabContent">
+                        
+                        <!-- Workout History Tab -->
+                        <div class="tab-pane fade show active" id="workout-history">
+                            {% if user_history.workouts %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Workout</th>
+                                            <th>Day</th>
+                                            <th>Duration</th>
+                                            <th>Calories Burnt</th>
+                                            <th>Difficulty</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for plan in user_history.workouts %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ plan.workout_name }}</strong><br>
+                                                <small class="text-muted">{{ plan.description[:30] if plan.description else '...' }}...</small>
+                                            </td>
+                                            <td><span class="badge bg-light text-dark">{{ plan.day_of_week or 'Any' }}</span></td>
+                                            <td>{{ plan.duration }} mins</td>
+                                            <td><span class="badge bg-danger">{{ plan.calories_to_burn or 0 }} kcal</span></td>
+                                            <td>
+                                                <span class="badge {% if plan.difficulty == 'Advanced' %}bg-danger{% elif plan.difficulty == 'Intermediate' %}bg-warning{% else %}bg-success{% endif %}">
+                                                    {{ plan.difficulty }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if plan.status == 'Completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                                    {{ plan.status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button type="button" class="btn btn-outline-primary" 
+                                                            data-id="{{ plan.id }}"
+                                                            data-name="{{ plan.workout_name|e }}"
+                                                            data-desc="{{ (plan.description or '')|e }}"
+                                                            data-duration="{{ plan.duration }}"
+                                                            data-difficulty="{{ plan.difficulty }}"
+                                                            data-day="{{ plan.day_of_week }}"
+                                                            data-calories="{{ plan.calories_to_burn }}"
+                                                            onclick="editWorkout(this)"
+                                                            title="Edit Workout">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    {% if plan.status == "Pending" %}
+                                                    <form action="{{ url_for('admin.update_plan_status', plan_id=plan.id) }}" method="POST" class="d-inline">
+                                                        <input type="hidden" name="status" value="Completed">
+                                                        <button type="submit" class="btn btn-outline-success" title="Mark Complete">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    </form>
+                                                    {% endif %}
+                                                    <form action="{{ url_for('admin.delete_workout_plan', plan_id=plan.id) }}"
+                                                          method="POST"
+                                                          class="d-inline"
+                                                          onsubmit="return confirm('Are you sure you want to delete this workout plan?');">
+                                                        <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-center text-muted py-4">No workout plans assigned yet.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Diet History Tab -->
+                        <div class="tab-pane fade" id="diet-history">
+                            {% if user_history.diets %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Meal</th>
+                                            <th>Type</th>
+                                            <th>Day</th>
+                                            <th>Calories</th>
+                                            <th>Macros (P/C/F)</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for plan in user_history.diets %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ plan.meal_name }}</strong>
+                                                {% if plan.description %}
+                                                <br><small class="text-muted">{{ plan.description[:50] }}...</small>
+                                                {% endif %}
+                                            </td>
+                                            <td><span class="badge bg-info">{{ plan.meal_type }}</span></td>
+                                            <td>{{ plan.day_of_week or 'Any' }}</td>
+                                            <td>{{ plan.calories }} kcal</td>
+                                            <td>
+                                                <span class="badge {% if plan.status == 'Completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                                    {{ plan.status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button type="button" class="btn btn-outline-primary" 
+                                                            data-id="{{ plan.id }}"
+                                                            data-name="{{ plan.meal_name|e }}"
+                                                            data-type="{{ plan.meal_type }}"
+                                                            data-calories="{{ plan.calories }}"
+                                                            data-desc="{{ (plan.description or '')|e }}"
+                                                            data-time="{{ plan.intake_time or '' }}"
+                                                            data-day="{{ plan.day_of_week }}"
+                                                            onclick="editDiet(this)"
+                                                            title="Edit Diet">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    {% if plan.status == "Pending" %}
+                                                    <form action="{{ url_for('admin.update_plan_status', plan_id=plan.id) }}" method="POST" class="d-inline">
+                                                        <input type="hidden" name="status" value="Completed">
+                                                        <button type="submit" class="btn btn-outline-success" title="Mark Complete">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    </form>
+                                                    {% endif %}
+                                                    <form action="{{ url_for('admin.delete_diet_plan', plan_id=plan.id) }}"
+                                                          method="POST"
+                                                          class="d-inline"
+                                                          onsubmit="return confirm('Are you sure you want to delete this diet plan?');">
+                                                        <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-center text-muted py-4">No diet plans assigned yet.</p>
+                            {% endif %}
+                        </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Please select a member from the left to view details and assign plans.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Assign Plan Modal -->
+<div class="modal fade" id="assignPlanModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="user_id" value="{{ selected_user.id }}">
+                <input type="hidden" name="active_tab" id="active_tab" value="workout">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Assign New Plan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Instructions:</strong> Select specific days for this plan.
+                    </div>
+
+                    <!-- Days Selector -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Schedule Days</label>
+                        <div class="days-checkbox-group">
+                            {% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                            {% for day in days %}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="days" value="{{ day }}" id="day{{ loop.index }}" checked>
+                                <label class="form-check-label" for="day{{ loop.index }}">{{ day[:3] }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                        <li class="nav-item">
+                            <button type="button" class="nav-link active" id="tab-workout" data-bs-toggle="pill" data-bs-target="#pills-workout">
+                                <i class="fas fa-dumbbell"></i> Workout Plan
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link" id="tab-diet" data-bs-toggle="pill" data-bs-target="#pills-diet">
+                                <i class="fas fa-utensils"></i> Diet Plan
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="pills-tabContent">
+                        <!-- Workout Form -->
+                        <div class="tab-pane fade show active" id="pills-workout">
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label">Workout Name *</label>
+                                    <input type="text" class="form-control" name="workout_name">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Difficulty *</label>
+                                    <select class="form-select" name="difficulty" required>
+                                        <option value="Beginner">Beginner</option>
+                                        <option value="Intermediate" selected>Intermediate</option>
+                                        <option value="Advanced">Advanced</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Duration (mins) *</label>
+                                    <input type="number" class="form-control" name="duration" value="45" min="1" required>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Calories Burnt *</label>
+                                    <input type="number" class="form-control" name="calories_to_burn" value="300" min="0" required>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-control" name="description" rows="3"></textarea>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Workout Photo</label>
+                                    <input type="file" class="form-control" name="workout_image" accept="image/*">
+                                    <small class="text-muted">Optional: Upload an image illustrating the workout.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Diet Form (Bulk Entry) -->
+                        <div class="tab-pane fade" id="pills-diet">
+                            <div class="alert alert-soft-secondary mb-3">
+                                <small><i class="fas fa-info-circle"></i> Fill details for any meal type. Empty meals will be ignored.</small>
+                            </div>
+                            
+                            {% for mt in ['Breakfast', 'Lunch', 'Dinner', 'Snack'] %}
+                            <div class="meal-group-item mb-4 pb-3 border-bottom">
+                                <div class="d-flex align-items-center mb-2">
+                                    <h6 class="mb-0 text-primary">
+                                        <i class="fas {% if mt == 'Breakfast' %}fa-sun{% elif mt == 'Lunch' %}fa-cloud-sun{% elif mt == 'Dinner' %}fa-moon{% else %}fa-apple-alt{% endif %} me-2"></i>
+                                        {{ mt }}
+                                    </h6>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-8">
+                                        <label class="form-label small">Meal Name</label>
+                                        <input type="text" class="form-control form-control-sm" name="{{ mt|lower }}_name" placeholder="e.g. Oats with Berries">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small">Intake Time</label>
+                                        <input type="text" class="form-control form-control-sm" name="{{ mt|lower }}_time" placeholder="e.g. 08:30 AM">
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label small">Calories (kcal)</label>
+                                        <input type="number" class="form-control form-control-sm" name="{{ mt|lower }}_calories" placeholder="e.g. 500">
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label small">Description / Instructions</label>
+                                        <input type="text" class="form-control form-control-sm" name="{{ mt|lower }}_description">
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Assign Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

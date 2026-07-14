@@ -1,0 +1,255 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% block title %}Workout History - SmartFit{% endblock %}
+
+{% block head %}
+<style>
+    .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .toggles-container {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .filter-pills {
+        display: flex;
+        gap: 8px;
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 12px;
+    }
+
+    .filter-pill {
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #64748b;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .filter-pill.active {
+        background: white;
+        color: #f97316;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .day-section {
+        margin-bottom: 40px;
+    }
+
+    .day-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .day-title {
+        font-size: 1.4rem;
+        font-weight: 900;
+        color: #0f172a;
+        margin: 0;
+        letter-spacing: -0.5px;
+    }
+
+    .day-divider {
+        flex-grow: 1;
+        height: 1px;
+        background: #e2e8f0;
+    }
+
+    .history-grid-refined {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+    }
+
+    .column-header {
+        font-size: 0.75rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #64748b;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .column-header i {
+        color: #f9731633;
+    }
+
+    .activity-card-mini {
+        background: white;
+        border-radius: 16px;
+        padding: 14px 18px;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .activity-card-mini:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
+        border-color: #f9731644;
+    }
+
+    .mini-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .mini-icon.primary { background: #eff6ff; color: #3b82f6; }
+    .mini-icon.warning { background: #fffbeb; color: #f59e0b; }
+    .mini-icon.success { background: #f0fdf4; color: #22c55e; }
+    .mini-icon.info { background: #fdf2f8; color: #db2777; }
+
+    .mini-content {
+        flex-grow: 1;
+        overflow: hidden;
+    }
+
+    .mini-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #0f172a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        letter-spacing: -0.3px;
+    }
+
+    .mini-status {
+        font-size: 0.75rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        opacity: 0.9;
+    }
+
+    .status-completed { color: #10b981; }
+    .status-pending { color: #94a3b8; }
+    .status-skipped { color: #ef4444; }
+    .status-logged { color: #0ea5e9; }
+
+    .empty-col {
+        padding: 20px;
+        background: #f8fafc;
+        border: 2px dashed #e2e8f0;
+        border-radius: 14px;
+        text-align: center;
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    @media (max-width: 991px) {
+        .history-grid-refined {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-header">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Activity History</h2>
+        <p class="text-muted small mb-0">Total of {{ total_count }} recorded actions</p>
+    </div>
+    
+    <div class="toggles-container">
+        <!-- Category Filter -->
+        <div class="filter-pills">
+            <a href="{{ url_for('dashboard.history', range=days_range, category='all') }}" class="filter-pill {% if category_filter == 'all' %}active{% endif %}">Default</a>
+            <a href="{{ url_for('dashboard.history', range=days_range, category='workout') }}" class="filter-pill {% if category_filter == 'workout' %}active{% endif %}">Workouts</a>
+            <a href="{{ url_for('dashboard.history', range=days_range, category='meal') }}" class="filter-pill {% if category_filter == 'meal' %}active{% endif %}">Meals</a>
+        </div>
+
+        <!-- Range Filter -->
+        <div class="filter-pills">
+            <a href="{{ url_for('dashboard.history', range=7, category=category_filter) }}" class="filter-pill {% if days_range == 7 %}active{% endif %}">1 Week</a>
+            <a href="{{ url_for('dashboard.history', range=30, category=category_filter) }}" class="filter-pill {% if days_range == 30 %}active{% endif %}">Month</a>
+        </div>
+    </div>
+</div>
+
+{% if history_data %}
+    {% for day in history_data %}
+    <div class="day-section">
+        <div class="day-header">
+            <h3 class="day-title">{{ day.date_str }}</h3>
+            <div class="day-divider"></div>
+        </div>
+
+        <div class="history-grid-refined">
+            <!-- Workout Column -->
+            <div class="history-column">
+                <div class="column-header"><i class="fas fa-dumbbell"></i> Workout History</div>
+                {% if day.workouts %}
+                    {% for item in day.workouts %}
+                    <div class="activity-card-mini">
+                        <div class="mini-icon {{ item.color }}">
+                            <i class="fas {{ item.icon }}"></i>
+                        </div>
+                        <div class="mini-content">
+                            <div class="mini-title">{{ item.title }}</div>
+                            <span class="mini-status status-{{ item.status|lower }}">{{ item.status }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-col">No workout activity logged</div>
+                {% endif %}
+            </div>
+
+            <!-- Meal Column -->
+            <div class="history-column">
+                <div class="column-header"><i class="fas fa-utensils"></i> Meal History</div>
+                {% if day.meals %}
+                    {% for item in day.meals %}
+                    <div class="activity-card-mini">
+                        <div class="mini-icon {{ item.color }}">
+                            <i class="fas {{ item.icon }}"></i>
+                        </div>
+                        <div class="mini-content">
+                            <div class="mini-title">{{ item.title }}</div>
+                            <span class="mini-status status-{{ item.status|lower }}">{{ item.status }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-col">No meal activity logged</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="card border-0 shadow-sm p-5 text-center">
+        <i class="fas fa-history fa-3x text-light mb-3"></i>
+        <h5 class="text-muted">No history found for this period</h5>
+    </div>
+{% endif %}
+{% endblock %}

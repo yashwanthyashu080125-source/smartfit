@@ -1,0 +1,241 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}System Analytics{% endblock %}
+
+{% block content %}
+<div class="analytics-container animate-fade-in">
+    <!-- Top Metric Cards -->
+    <div class="analytics-grid">
+        <div class="analytics-card">
+            <div class="card-header">
+                <h4><i class="fas fa-user-plus"></i> Monthly New Users</h4>
+            </div>
+            <div class="card-body">
+                <div class="metric-value">{{ monthly_users }}</div>
+                <div class="metric-trend positive">
+                    <i class="fas fa-chart-line"></i> Last 30 days
+                </div>
+            </div>
+        </div>
+
+        <div class="analytics-card">
+            <div class="card-header">
+                <h4><i class="fas fa-dumbbell"></i> Monthly Workouts</h4>
+            </div>
+            <div class="card-body">
+                <div class="metric-value">{{ monthly_workouts }}</div>
+                <div class="metric-trend positive">
+                    <i class="fas fa-history"></i> Sessions recorded
+                </div>
+            </div>
+        </div>
+
+        <div class="analytics-card">
+            <div class="card-header">
+                <h4><i class="fas fa-utensils"></i> Monthly Meals</h4>
+            </div>
+            <div class="card-body">
+                <div class="metric-value">{{ monthly_meals }}</div>
+                <div class="metric-trend positive">
+                    <i class="fas fa-calendar-check"></i> Nutrition logs
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mt-4">
+        <div class="col-lg-8 mb-4">
+            <div class="chart-container h-100">
+                <div class="section-header mb-4">
+                    <h4 class="section-title"><i class="fas fa-chart-area"></i> Activity Overview</h4>
+                    <p class="section-subtitle">Comparing workouts and meals over the last 14 days</p>
+                </div>
+                <div class="chart-card">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="chart-container h-100">
+                <div class="section-header mb-4">
+                    <h4 class="section-title"><i class="fas fa-bullseye"></i> Goal Distribution</h4>
+                    <p class="section-subtitle">User preferences by goal type</p>
+                </div>
+                <div class="chart-card">
+                    <canvas id="goalChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Growth and Top Users Row -->
+    <div class="row mt-2">
+        <div class="col-lg-6 mb-4">
+            <div class="chart-container">
+                <div class="section-header mb-4">
+                    <h4 class="section-title"><i class="fas fa-user-friends"></i> User Growth</h4>
+                    <p class="section-subtitle">Daily registration trend</p>
+                </div>
+                <div class="chart-card" style="height: 300px;">
+                    <canvas id="growthChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="table-container">
+                <div class="section-header mb-4">
+                    <h4 class="section-title"><i class="fas fa-medal"></i> Top Performers</h4>
+                    <p class="section-subtitle">Most active users by workout count</p>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Workouts</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in most_active_users %}
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-small">{{ user.name[0]|upper }}</div>
+                                    <span class="user-name">{{ user.name }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-success">{{ user[2] }} sessions</span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn-icon btn-outline-success">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Data Injection for Chart.js -->
+<div id="chart-data-registry" 
+     data-labels='{{ chart_labels|tojson|safe }}'
+     data-workouts='{{ workout_counts|tojson|safe }}'
+     data-meals='{{ meal_counts|tojson|safe }}'
+     data-users='{{ user_counts|tojson|safe }}'
+     data-goal-labels='{{ goal_labels|tojson|safe }}'
+     data-goal-data='{{ goal_data|tojson|safe }}'
+     style="display: none;">
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // === DATA EXTRACTION ===
+    const registry = document.getElementById('chart-data-registry');
+    
+    // Parse the data from HTML attributes (Standard JS, no linter errors)
+    const chartLabels = JSON.parse(registry.dataset.labels);
+    const workoutCounts = JSON.parse(registry.dataset.workouts);
+    const mealCounts = JSON.parse(registry.dataset.meals);
+    const userCounts = JSON.parse(registry.dataset.users);
+    const goalLabels = JSON.parse(registry.dataset.goalLabels);
+    const goalData = JSON.parse(registry.dataset.goalData);
+
+    // Shared Chart Options
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: { font: { family: 'Poppins' } }
+            }
+        },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0, 200, 150, 0.05)' } },
+            x: { grid: { display: false } }
+        }
+    };
+
+    // 1. Activity Chart (Workouts vs Meals)
+    const ctxActivity = document.getElementById('activityChart').getContext('2d');
+    new Chart(ctxActivity, {
+        type: 'line',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'Workouts',
+                data: workoutCounts,
+                borderColor: '#00c896',
+                backgroundColor: 'rgba(0, 200, 150, 0.1)',
+                fill: true,
+                tension: 0.4
+            }, {
+                label: 'Meals',
+                data: mealCounts,
+                borderColor: '#00b4d8',
+                backgroundColor: 'rgba(0, 180, 216, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: chartOptions
+    });
+
+    // 2. Goal Distribution (Pie)
+    const ctxGoal = document.getElementById('goalChart').getContext('2d');
+    new Chart(ctxGoal, {
+        type: 'doughnut',
+        data: {
+            labels: goalLabels,
+            datasets: [{
+                data: goalData,
+                backgroundColor: ['#00c896', '#00b4d8', '#ffb703', '#fb8500', '#00b87a'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            cutout: '70%'
+        }
+    });
+
+    // 3. User Growth Chart
+    const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+    new Chart(ctxGrowth, {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'New Users',
+                data: userCounts,
+                backgroundColor: '#00c896',
+                borderRadius: 5
+            }]
+        },
+        options: chartOptions
+    });
+});
+</script>
+
+<style>
+    .chart-container {
+        background: white;
+        padding: 25px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+    .chart-card {
+        height: 350px;
+    }
+</style>
+{% endblock %}

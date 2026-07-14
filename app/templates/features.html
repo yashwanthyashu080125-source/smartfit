@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+{% block title %}Platform Features — SmartFit{% endblock %}
+
+{% block head %}
+<style>
+:root {
+    --orange: #f97316;
+    --surface: rgba(249,115,22,0.04);
+    --border: rgba(0,0,0,0.07);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --orange-glow: rgba(249,115,22,0.2);
+}
+
+.page-hero {
+    padding: 120px 40px 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffffff 60%);
+}
+
+.page-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 400px;
+    background: radial-gradient(ellipse, rgba(249,115,22,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.page-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(249,115,22,0.1);
+    border: 1px solid rgba(249,115,22,0.25);
+    color: #f97316; font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 100px; margin-bottom: 24px;
+    animation: fadeDown 0.7s ease both;
+}
+
+@keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-hero h1 {
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    line-height: 1.1;
+    animation: fadeUp 0.8s 0.1s ease both;
+}
+
+.page-hero h1 .accent-text {
+    background: linear-gradient(135deg, #f97316, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.page-hero p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.8;
+    animation: fadeUp 0.8s 0.2s ease both;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* CARDS */
+.cards-section {
+    padding: 20px 40px 100px;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.cards-masonry {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.feat-card {
+    position: relative;
+    background: white;
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    overflow: hidden;
+    transform-style: preserve-3d;
+}
+
+.feat-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--orange), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.feat-card:hover {
+    background: rgba(249,115,22,0.03);
+    border-color: rgba(249,115,22,0.3);
+    transform: translateY(-12px) rotateX(2deg);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.1), 0 0 30px rgba(249,115,22,0.08);
+}
+
+.feat-card:hover::after { opacity: 1; }
+
+.card-num {
+    font-size: 4rem;
+    font-weight: 900;
+    color: rgba(249,115,22,0.1);
+    letter-spacing: -3px;
+    line-height: 1;
+    margin-bottom: 20px;
+    font-variant-numeric: tabular-nums;
+}
+
+.card-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.feat-card:hover .card-emoji {
+    transform: scale(1.2) translateZ(10px);
+}
+
+.feat-card h4 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+}
+
+.feat-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.75;
+}
+
+.feat-card.featured {
+    grid-column: span 2;
+    background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(255,255,255,0.02));
+    border-color: rgba(249,115,22,0.2);
+    display: flex;
+    gap: 40px;
+    align-items: center;
+}
+
+.feat-card.featured .card-content { flex: 1; }
+.feat-card.featured .card-visual {
+    flex: 0 0 180px;
+    text-align: center;
+}
+.feat-card.featured .card-visual .big-icon {
+    font-size: 5rem;
+    display: block;
+    filter: drop-shadow(0 0 20px var(--orange-glow));
+    animation: iconFloat 3s ease-in-out infinite alternate;
+}
+
+@keyframes iconFloat {
+    from { transform: translateY(0) scale(1); }
+    to { transform: translateY(-12px) scale(1.05); }
+}
+
+/* BADGES SECTION */
+.badges-section {
+    padding: 60px 40px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    background: #f8fafc;
+    text-align: center;
+}
+
+.badges-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.badges-inner h3 {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 40px;
+    letter-spacing: 0.5px;
+}
+
+.tech-badges {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.tech-badge {
+    display: flex; align-items: center; gap: 10px;
+    background: white;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.tech-badge:hover {
+    border-color: rgba(249,115,22,0.3);
+    color: #f97316;
+    background: rgba(249,115,22,0.05);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(249,115,22,0.12);
+}
+
+.tech-badge i { color: var(--orange); font-size: 1.1rem; }
+
+@media (max-width: 900px) {
+    .cards-masonry { grid-template-columns: 1fr; }
+    .feat-card.featured { flex-direction: column; gap: 20px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Hero -->
+<section class="page-hero">
+    <div class="page-tag"><i class="fas fa-microchip"></i> Platform Intelligence</div>
+    <h1>Everything You Need to<br><span class="accent-text">Perform at Your Peak</span></h1>
+    <p>A comprehensive suite of high-performance health tools, built with precision and designed to deliver real results.</p>
+</section>
+
+<!-- Tech Badges -->
+<div class="badges-section">
+    <div class="badges-inner">
+        <h3>Powered by cutting-edge health science & analytics</h3>
+        <div class="tech-badges">
+            <div class="tech-badge"><i class="fas fa-brain"></i> Smart Analytics</div>
+            <div class="tech-badge"><i class="fas fa-lock"></i> Secure Auth</div>
+            <div class="tech-badge"><i class="fas fa-heartbeat"></i> Biometrics</div>
+            <div class="tech-badge"><i class="fas fa-chart-bar"></i> Live Dashboards</div>
+            <div class="tech-badge"><i class="fas fa-dumbbell"></i> Adaptive Plans</div>
+            <div class="tech-badge"><i class="fas fa-bell"></i> Smart Alerts</div>
+            <div class="tech-badge"><i class="fas fa-moon"></i> Sleep Tracking</div>
+            <div class="tech-badge"><i class="fas fa-shield-alt"></i> Admin Controls</div>
+        </div>
+    </div>
+</div>
+
+<!-- Cards -->
+<div class="cards-section">
+    <div class="cards-masonry">
+        <div class="feat-card featured reveal">
+            <div class="card-content">
+                <div class="card-num">01</div>
+                <h4>Real-Time Metabolic Analytics</h4>
+                <p>Captures and processes multi-dimensional user metrics including physiological weight, active calorie burn, and metabolic activity. Calculates precise BMI, BMR, and TDEE using validated scientific formulas for highly personalized health insights.</p>
+            </div>
+            <div class="card-visual">
+                <span class="big-icon">📊</span>
+            </div>
+        </div>
+
+        <div class="feat-card reveal" style="transition-delay:0.05s">
+            <div class="card-num">02</div>
+            <span class="card-emoji">🥗</span>
+            <h4>Macro-Intelligent Nutrition</h4>
+            <p>Automated caloric adjustments with integrated macro-nutrient guidance. Log meals, track protein, carbs, and fats in real time with historical trend analysis.</p>
+        </div>
+
+        <div class="feat-card reveal" style="transition-delay:0.1s">
+            <div class="card-num">03</div>
+            <span class="card-emoji">📝</span>
+            <h4>Performance Logging</h4>
+            <p>Record complex exercise sequences, real-time calories burned, and strength progression across multiple training cycles with full history.</p>
+        </div>
+
+        <div class="feat-card reveal" style="transition-delay:0.15s">
+            <div class="card-num">04</div>
+            <span class="card-emoji">🔒</span>
+            <h4>Secure Role-Based Auth</h4>
+            <p>Advanced authentication with end-to-end encrypted credentials. Admin and user roles with complete data isolation protocols to keep your data safe.</p>
+        </div>
+
+        <div class="feat-card featured reveal" style="transition-delay:0.2s; grid-column: 2 / span 2;">
+            <div class="card-visual">
+                <span class="big-icon">📈</span>
+            </div>
+            <div class="card-content">
+                <div class="card-num">05</div>
+                <h4>Predictive Performance Dashboard</h4>
+                <p>Interactive charts and real-time metric visualization for predictive performance modeling. See trends before they happen and adapt your strategy with live data insights across workouts, nutrition, sleep, and body composition.</p>
+            </div>
+        </div>
+
+        <div class="feat-card reveal" style="transition-delay:0.25s">
+            <div class="card-num">06</div>
+            <span class="card-emoji">🎯</span>
+            <h4>Strategic Goal Engine</h4>
+            <p>Dynamic weight optimization and structural muscle gain programs with automated milestone tracking and admin-assigned personalized plans.</p>
+        </div>
+
+        <div class="feat-card reveal" style="transition-delay:0.3s">
+            <div class="card-num">07</div>
+            <span class="card-emoji">🔔</span>
+            <h4>Smart Notifications</h4>
+            <p>Real-time alerts and coaching nudges delivered via your dashboard. Stay on track with personalized reminders and progress updates.</p>
+        </div>
+
+        <div class="feat-card reveal" style="transition-delay:0.35s">
+            <div class="card-num">08</div>
+            <span class="card-emoji">😴</span>
+            <h4>Sleep Architecture</h4>
+            <p>Log and analyze sleep patterns to optimize recovery phases, improve cognitive function, and enhance overall physical performance output.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

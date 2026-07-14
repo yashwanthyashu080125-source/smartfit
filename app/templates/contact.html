@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+{% block title %}Contact — SmartFit Intelligence{% endblock %}
+
+{% block head %}
+<style>
+:root {
+    --orange: #f97316;
+    --surface: rgba(249,115,22,0.04);
+    --border: rgba(0,0,0,0.07);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --orange-glow: rgba(249,115,22,0.2);
+}
+
+.contact-hero {
+    padding: 120px 40px 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffffff 60%);
+}
+
+.contact-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 400px;
+    background: radial-gradient(ellipse, rgba(249,115,22,0.09) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.page-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(249,115,22,0.1);
+    border: 1px solid rgba(249,115,22,0.25);
+    color: #f97316; font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 100px; margin-bottom: 24px;
+    animation: fadeDown 0.7s ease both;
+}
+
+@keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.contact-hero h1 {
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    line-height: 1.1;
+    animation: fadeUp 0.8s 0.1s ease both;
+}
+
+.contact-hero h1 .accent-text {
+    background: linear-gradient(135deg, #f97316, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.contact-hero p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.8;
+    animation: fadeUp 0.8s 0.2s ease both;
+}
+
+/* CONTACT CARDS */
+.contact-info-section {
+    padding: 0 40px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.contact-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 60px;
+}
+
+.c-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.c-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--orange), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.c-card:hover {
+    border-color: rgba(249,115,22,0.3);
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1), 0 0 20px rgba(249,115,22,0.08);
+    background: rgba(249,115,22,0.02);
+}
+
+.c-card:hover::after { opacity: 1; }
+
+.c-icon {
+    width: 60px; height: 60px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(249,115,22,0.05));
+    border: 1px solid rgba(249,115,22,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto 20px;
+    transition: all 0.4s ease;
+}
+
+.c-card:hover .c-icon {
+    transform: scale(1.15) rotate(-5deg);
+    box-shadow: 0 10px 30px var(--orange-glow);
+}
+
+.c-card h4 {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.c-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* CONTACT FORM */
+.contact-form-section {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 40px 100px;
+}
+
+.form-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 28px;
+    padding: 56px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.form-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 10%, var(--orange) 50%, transparent 90%);
+}
+
+.form-title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.form-title h2 {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    letter-spacing: -0.8px;
+    margin-bottom: 10px;
+}
+
+.form-title p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 14px 18px;
+    background: #f8fafc;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 14px;
+    font-size: 0.95rem;
+    color: #0f172a;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: #94a3b8;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: rgba(249,115,22,0.5);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.08);
+}
+
+.form-group textarea { min-height: 140px; }
+
+.btn-submit-glow {
+    width: 100%;
+    padding: 17px 30px;
+    background: linear-gradient(135deg, var(--orange), #ea580c);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 8px 30px var(--orange-glow);
+    letter-spacing: 0.3px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-submit-glow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.btn-submit-glow:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px var(--orange-glow);
+}
+
+.btn-submit-glow:hover::before { opacity: 1; }
+
+/* Flash messages */
+.flash-msg {
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.25);
+    color: #065f46;
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+@media (max-width: 900px) {
+    .contact-cards { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+    .form-card { padding: 30px 24px; }
+    .form-row { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="contact-hero">
+    <div class="page-tag"><i class="fas fa-headset"></i> Get In Touch</div>
+    <h1>We're Here to<br><span class="accent-text">Help You Succeed</span></h1>
+    <p>Our support team is ready to assist with performance questions, technical issues, or partnership opportunities. Reach out anytime.</p>
+</section>
+
+<!-- Contact Info Cards -->
+<div class="contact-info-section">
+    <div class="contact-cards">
+        <div class="c-card reveal">
+            <div class="c-icon">📧</div>
+            <h4>General Support</h4>
+            <p>support@smartfit.com</p>
+        </div>
+        <div class="c-card reveal" style="transition-delay:0.1s">
+            <div class="c-icon">🔧</div>
+            <h4>Technical Systems</h4>
+            <p>systems@smartfit.com</p>
+        </div>
+        <div class="c-card reveal" style="transition-delay:0.2s">
+            <div class="c-icon">💼</div>
+            <h4>Partnerships</h4>
+            <p>global@smartfit.com</p>
+        </div>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="contact-form-section" style="padding-left:0; padding-right:0;">
+        <div class="form-card reveal">
+            <div class="form-title">
+                <h2>Send Us a <span style="color:#f97316">Message</span></h2>
+                <p>Fill in the details below and we'll respond within 24 hours.</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash-msg">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('contact') }}" method="POST">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Your Name</label>
+                        <input type="text" id="name" name="name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" placeholder="What's this about?" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" placeholder="Tell us how we can help you..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit-glow">
+                    <i class="fas fa-paper-plane"></i> Send Message
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

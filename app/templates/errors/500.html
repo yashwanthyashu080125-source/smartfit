@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}500 - System Error{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <h1 class="display-1 fw-bold text-danger">500</h1>
+    <h2 class="mb-4">Neural Feedback Loop</h2>
+    <p class="lead mb-5">Something went wrong in our neural network. We're on it!</p>
+    <a href="{{ url_for('splash') }}" class="btn btn-dark px-4 py-2" style="border-radius: 12px;">Reboot</a>
+</div>
+{% endblock %}

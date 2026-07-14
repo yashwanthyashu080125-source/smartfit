@@ -1,0 +1,84 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% block title %}Meal Result{% endblock %}
+
+{% block content %}
+
+<div class="content-section">
+
+<h2 class="section-title">Meal Analysis 🍽</h2>
+
+<div style="display:flex; gap:40px; align-items:flex-start; flex-wrap:wrap;">
+
+    <!-- Uploaded Image -->
+    <div>
+        <img
+            src="{{ url_for('static', filename='uploads/meals/' + image) }}"
+            style="width:260px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1);"
+        >
+    </div>
+
+    <!-- Result Section -->
+    <div style="min-width:280px;">
+
+        <h3 style="margin-bottom:10px;">Detected Food</h3>
+
+        <p style="font-size:22px; font-weight:600; color:#374151;">
+            🍴 {{ food|title }}
+        </p>
+
+        {% if nutrition %}
+
+        <h3 style="margin-top:25px;">Nutrition Information</h3>
+
+        <div style="
+            background:#f8fafc;
+            padding:20px;
+            border-radius:12px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.05);
+            font-size:18px;
+            line-height:2;
+            margin-top:10px;
+        ">
+
+            <p>🔥 <strong>Calories:</strong> {{ nutrition.calories.value }} kcal</p>
+
+            <p>🥩 <strong>Protein:</strong> {{ nutrition.protein.value }} g</p>
+
+            <p>🍞 <strong>Carbohydrates:</strong> {{ nutrition.carbs.value }} g</p>
+
+            <p>🧈 <strong>Fat:</strong> {{ nutrition.fat.value }} g</p>
+
+        </div>
+
+        {% else %}
+
+        <p style="color:#ef4444; font-weight:600; margin-top:15px;">
+            ⚠ Nutrition data not available
+        </p>
+
+        {% endif %}
+
+        <br>
+
+        <a href="{{ url_for('dashboard.nutrition') }}"
+           style="
+           display:inline-block;
+           padding:12px 22px;
+           background:#f97316;
+           color:white;
+           border-radius:25px;
+           text-decoration:none;
+           font-weight:600;
+           box-shadow:0 4px 10px rgba(0,0,0,0.1);
+           ">
+           Upload Another Meal
+        </a>
+
+    </div>
+
+</div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+{% block title %}About — SmartFit Intelligence{% endblock %}
+
+{% block head %}
+<style>
+:root {
+    --orange: #f97316;
+    --surface: rgba(249,115,22,0.04);
+    --border: rgba(0,0,0,0.07);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --orange-glow: rgba(249,115,22,0.2);
+}
+
+.about-hero {
+    padding: 120px 40px 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffffff 55%, #f0f9ff 100%);
+}
+
+.about-hero::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 1000px; height: 300px;
+    background: radial-gradient(ellipse, rgba(249,115,22,0.07) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.page-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(249,115,22,0.1);
+    border: 1px solid rgba(249,115,22,0.25);
+    color: #f97316; font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 100px; margin-bottom: 24px;
+    animation: fadeDown 0.7s ease both;
+}
+
+@keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.about-hero h1 {
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    line-height: 1.1;
+    animation: fadeUp 0.8s 0.1s ease both;
+}
+
+.about-hero h1 .accent-text {
+    background: linear-gradient(135deg, #f97316, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.about-hero p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.8;
+    animation: fadeUp 0.8s 0.2s ease both;
+}
+
+/* STORY SECTION */
+.story-section {
+    padding: 40px 40px 80px;
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+}
+
+.story-text h2 {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    letter-spacing: -1.5px;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.story-text p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.85;
+    margin-bottom: 20px;
+}
+
+.story-check-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.story-check-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.story-check-list li i {
+    color: var(--orange);
+    font-size: 0.9rem;
+    width: 22px; height: 22px;
+    background: rgba(249,115,22,0.12);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+/* VISUAL ORB */
+.story-visual {
+    position: relative;
+    height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.orb-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(249,115,22,0.15);
+    animation: ringExpand 8s ease-in-out infinite alternate;
+}
+
+.orb-ring:nth-child(1) { width: 200px; height: 200px; animation-delay: 0s; }
+.orb-ring:nth-child(2) { width: 300px; height: 300px; animation-delay: 1s; border-color: rgba(249,115,22,0.08); }
+.orb-ring:nth-child(3) { width: 380px; height: 380px; animation-delay: 2s; border-color: rgba(249,115,22,0.04); }
+
+@keyframes ringExpand {
+    from { transform: scale(0.95); }
+    to { transform: scale(1.05); }
+}
+
+.orb-center {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(249,115,22,0.3), rgba(249,115,22,0.1));
+    border: 2px solid rgba(249,115,22,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.8rem;
+    box-shadow: 0 0 60px rgba(249,115,22,0.25);
+    animation: orbFloat 4s ease-in-out infinite alternate;
+    position: relative;
+    z-index: 2;
+}
+
+@keyframes orbFloat {
+    from { transform: translateY(0); box-shadow: 0 0 60px rgba(249,115,22,0.25); }
+    to { transform: translateY(-15px); box-shadow: 0 30px 80px rgba(249,115,22,0.15); }
+}
+
+/* MISSION CARDS */
+.mission-section {
+    padding: 80px 40px;
+    background: #f8fafc;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.mission-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.mission-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.mission-header h2 {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+}
+
+.mission-header p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.mission-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.m-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 24px;
+    padding: 40px 32px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+}
+
+.m-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(249,115,22,0.08), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.m-card:hover {
+    border-color: rgba(249,115,22,0.3);
+    transform: translateY(-12px) rotateX(3deg);
+    box-shadow: 0 24px 50px rgba(0,0,0,0.1), 0 0 30px rgba(249,115,22,0.08);
+    background: rgba(249,115,22,0.02);
+}
+
+.m-card:hover::before { opacity: 1; }
+
+.m-icon-wrap {
+    width: 72px; height: 72px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(249,115,22,0.2), rgba(249,115,22,0.05));
+    border: 1px solid rgba(249,115,22,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+    margin: 0 auto 26px;
+    transition: all 0.4s ease;
+    box-shadow: 0 8px 20px rgba(249,115,22,0.12);
+}
+
+.m-card:hover .m-icon-wrap {
+    transform: translateZ(20px) scale(1.1) rotate(-5deg);
+    box-shadow: 0 16px 40px rgba(249,115,22,0.25);
+}
+
+.m-card h4 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+    letter-spacing: -0.3px;
+}
+
+.m-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.75;
+}
+
+/* TEAM VALUES */
+.values-section {
+    padding: 80px 40px;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.values-inner { text-align: center; }
+.values-inner h2 {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    letter-spacing: -1px;
+    margin-bottom: 50px;
+}
+
+.values-track {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 10px;
+}
+
+.values-track::-webkit-scrollbar { display: none; }
+
+.val-chip {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    padding: 16px 24px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.val-chip:hover {
+    border-color: rgba(249,115,22,0.3);
+    background: rgba(249,115,22,0.05);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(249,115,22,0.1);
+}
+
+.val-chip-icon { font-size: 1.4rem; }
+.val-chip-text { font-size: 0.92rem; font-weight: 600; color: var(--text-primary); }
+
+@media (max-width: 900px) {
+    .story-section { grid-template-columns: 1fr; gap: 40px; }
+    .story-visual { display: none; }
+    .mission-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="about-hero">
+    <div class="page-tag"><i class="fas fa-info-circle"></i> Our Story</div>
+    <h1>Architecting the Future of<br><span class="accent-text">Human Performance</span></h1>
+    <p>SmartFit Intelligence was built with one mission — to make precision health data accessible, actionable, and inspiring for every athlete and health-seeker.</p>
+</section>
+
+<!-- Story -->
+<div class="story-section">
+    <div class="story-text reveal">
+        <h2>Built for the <span style="color:#f97316;">Modern Athlete</span></h2>
+        <p>We believe that data is the most powerful tool in a fitness journey. SmartFit combines advanced workout monitoring, real-time metabolic analysis, and adaptive nutrition tracking into a single centralized command center.</p>
+        <p>Our platform leverages biometric science to provide precise, actionable insights — whether you're an elite competitor or just starting your wellness journey.</p>
+        <ul class="story-check-list">
+            <li><i class="fas fa-check"></i> Real-time biometric tracking and analysis</li>
+            <li><i class="fas fa-check"></i> Admin-assigned personalized plans</li>
+            <li><i class="fas fa-check"></i> Comprehensive nutrition management</li>
+            <li><i class="fas fa-check"></i> Intelligent sleep and recovery insights</li>
+            <li><i class="fas fa-check"></i> Secure, role-based platform architecture</li>
+        </ul>
+    </div>
+
+    <div class="story-visual reveal" style="transition-delay:0.15s">
+        <div class="orb-ring"></div>
+        <div class="orb-ring"></div>
+        <div class="orb-ring"></div>
+        <div class="orb-center">❤️</div>
+    </div>
+</div>
+
+<!-- Mission Cards -->
+<div class="mission-section">
+    <div class="mission-inner">
+        <div class="mission-header reveal">
+            <h2>Our Core <span style="color:#f97316;">Philosophy</span></h2>
+            <p>Three pillars that guide every decision we make at SmartFit</p>
+        </div>
+        <div class="mission-grid">
+            <div class="m-card reveal">
+                <div class="m-icon-wrap"><i class="fas fa-bullseye"></i></div>
+                <h4>Precision Mission</h4>
+                <p>Deliver hyper-personalized health insights through structured data analysis that simplifies complex biometric management for every user.</p>
+            </div>
+            <div class="m-card reveal" style="transition-delay:0.1s">
+                <div class="m-icon-wrap"><i class="fas fa-eye"></i></div>
+                <h4>Global Vision</h4>
+                <p>Build the world's most integrated health ecosystem where fitness, nutrition, and metabolic biometrics interact seamlessly and intelligently.</p>
+            </div>
+            <div class="m-card reveal" style="transition-delay:0.2s">
+                <div class="m-icon-wrap"><i class="fas fa-flag"></i></div>
+                <h4>Core Objective</h4>
+                <p>Empower human performance through measurable, real-time data to optimize physical output and unlock long-term vitality for every individual.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Values -->
+<div class="values-section">
+    <div class="values-inner reveal">
+        <h2>What We Stand For</h2>
+        <div class="values-track">
+            <div class="val-chip"><span class="val-chip-icon">🎯</span><span class="val-chip-text">Precision</span></div>
+            <div class="val-chip"><span class="val-chip-icon">🔬</span><span class="val-chip-text">Science-Driven</span></div>
+            <div class="val-chip"><span class="val-chip-icon">🛡️</span><span class="val-chip-text">Privacy First</span></div>
+            <div class="val-chip"><span class="val-chip-icon">🚀</span><span class="val-chip-text">Constant Innovation</span></div>
+            <div class="val-chip"><span class="val-chip-icon">🤝</span><span class="val-chip-text">Community</span></div>
+            <div class="val-chip"><span class="val-chip-icon">💡</span><span class="val-chip-text">Intelligent Design</span></div>
+            <div class="val-chip"><span class="val-chip-icon">📈</span><span class="val-chip-text">Continuous Growth</span></div>
+            <div class="val-chip"><span class="val-chip-icon">✅</span><span class="val-chip-text">Accountability</span></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

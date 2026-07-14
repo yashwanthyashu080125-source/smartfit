@@ -1,0 +1,116 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}Goal Tracking System{% endblock %}
+
+{% block content %}
+<div class="goal-tracker-container animate-fade-in">
+    <!-- Goal Stats -->
+    <div class="stats-grid">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-icon"><i class="fas fa-flag-checkered"></i></div>
+            <div class="stat-details">
+                <h3>Total Goals Set</h3>
+                <div class="stat-number">{{ stats.total }}</div>
+                <div class="stat-change positive">Across all active users</div>
+            </div>
+        </div>
+        <div class="stat-card stat-card-success">
+            <div class="stat-icon"><i class="fas fa-medal"></i></div>
+            <div class="stat-details">
+                <h3>Completed Goals</h3>
+                <div class="stat-number">{{ stats.completed }}</div>
+                <div class="stat-change positive">Success Rate: {{ stats.success_rate }}%</div>
+            </div>
+        </div>
+        <div class="stat-card stat-card-warning">
+            <div class="stat-icon"><i class="fas fa-spinner"></i></div>
+            <div class="stat-details">
+                <h3>Ongoing Pursuits</h3>
+                <div class="stat-number">{{ stats.active }}</div>
+                <div class="stat-change positive">Active progress tracking</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goals Management Table -->
+    <div class="table-container mt-5 animate-slide-up">
+        <div class="section-header">
+            <h3 class="section-title"><i class="fas fa-bullseye"></i> User Objectives & Milestones</h3>
+            <p class="section-subtitle">Monitor the pursuit of fitness, weight, and nutrition targets</p>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Goal Title</th>
+                        <th>Type</th>
+                        <th>Target</th>
+                        <th>Progress</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for goal in goals %}
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar-small">{{ goal.user.name[0]|upper if goal.user and goal.user.name else 'U' }}</div>
+                                <span>{{ goal.user.name if goal.user and goal.user.name else 'Unknown User' }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <strong>{{ goal.title or 'Untitled Goal' }}</strong>
+                            <div class="small text-muted">
+                                {% if goal.description %}
+                                    {{ goal.description[:40] }}{% if goal.description|length > 40 %}...{% endif %}
+                                {% else %}
+                                    No description provided.
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-soft-info">{{ goal.goal_type|replace('_', ' ')|title }}</span>
+                        </td>
+                        <td>
+                            {{ goal.target_value }} <small>{{ goal.unit }}</small>
+                        </td>
+                        <td style="min-width: 120px;">
+                            {% set prog = goal.calculate_progress() %}
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress-bar" style="flex: 1; --p: {{ prog ~ '%' }};">
+                                    <div class="progress-fill" style="width: var(--p);"></div>
+                                </div>
+                                <span class="small">{{ prog }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <small>{{ goal.target_date.strftime('%Y-%m-%d') if goal.target_date else 'No Deadline' }}</small>
+                        </td>
+                        <td>
+                            {% if goal.completed %}
+                                <span class="status-badge active"><i class="fas fa-check-circle"></i> Completed</span>
+                            {% else %}
+                                <span class="status-badge pending"><i class="fas fa-clock"></i> In Progress</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">No user goals found in the system.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge-soft-info { background: #e6f7ff; color: #0096c7; font-weight: 500; }
+    .progress-bar { background: #e9ecef; height: 6px; border-radius: 3px; overflow: hidden; }
+    .progress-fill { background: linear-gradient(90deg, #00c896, #00a87d); height: 100%; transition: width 0.3s; }
+</style>
+{% endblock %}

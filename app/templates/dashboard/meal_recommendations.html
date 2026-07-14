@@ -1,0 +1,30 @@
+<h2>Smart Meal Recommendations</h2>
+
+<div class="row">
+
+{% for meal in meals %}
+
+<div class="col-md-4">
+
+<div class="card">
+
+<img src="{{ meal.image }}" class="card-img-top">
+
+<div class="card-body">
+
+<h5>{{ meal.title }}</h5>
+
+<a href="{{ meal.url }}" target="_blank"
+class="btn btn-success">
+View Recipe
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>

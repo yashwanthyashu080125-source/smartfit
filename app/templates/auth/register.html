@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - SmartFit</title>
+    <meta name="description" content="Create your free SmartFit account to start tracking workouts, nutrition, and fitness goals.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            padding: 30px 20px;
+            position: relative;
+            background: #fef9f0;
+        }
+
+        /* ── Animated Mesh Gradient Background ── */
+        .bg-mesh {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #fef9f0 0%, #fff8f1 50%, #f0fdf4 100%);
+        }
+
+        .bg-mesh .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            will-change: transform;
+            animation: blobFloat 18s ease-in-out infinite alternate;
+        }
+
+        .bg-mesh .blob-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.35) 0%, transparent 70%);
+            top: -10%;
+            left: -5%;
+            animation-duration: 20s;
+        }
+
+        .bg-mesh .blob-2 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+            bottom: -15%;
+            right: -10%;
+            animation-duration: 24s;
+            animation-delay: -5s;
+        }
+
+        .bg-mesh .blob-3 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-duration: 22s;
+            animation-delay: -8s;
+        }
+
+        .bg-mesh .blob-4 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+            bottom: 10%;
+            left: 20%;
+            animation-duration: 26s;
+            animation-delay: -12s;
+        }
+
+        @keyframes blobFloat {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(60px, -40px) scale(1.08);
+            }
+            50% {
+                transform: translate(-30px, 50px) scale(0.95);
+            }
+            75% {
+                transform: translate(40px, 20px) scale(1.05);
+            }
+            100% {
+                transform: translate(-20px, -30px) scale(1);
+            }
+        }
+
+        /* Subtle grid pattern overlay */
+        .bg-mesh::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 1px 1px, rgba(0,0,0,0.03) 1px, transparent 0);
+            background-size: 32px 32px;
+            z-index: 1;
+        }
+
+        /* ── Glassmorphism Card ── */
+        .glass-card {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 480px;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 28px;
+            box-shadow:
+                0 8px 40px rgba(249, 115, 22, 0.08),
+                0 1px 3px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.95);
+            padding: 40px 40px 32px;
+            animation: cardEnter 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+
+        @keyframes cardEnter {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Shimmer accent on card top */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 40px;
+            right: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #f97316, #10b981, transparent);
+            border-radius: 0 0 4px 4px;
+            opacity: 0.7;
+            animation: shimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+
+        /* ── Brand ── */
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #ea580c;
+            margin-bottom: 6px;
+            animation: cardEnter 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+        }
+
+        .brand-logo i {
+            font-size: 1.6rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* ── Title ── */
+        .card-title {
+            text-align: center;
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+            animation: cardEnter 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+        }
+
+        .card-subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.88rem;
+            margin-bottom: 26px;
+            animation: cardEnter 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+        }
+
+        /* ── Two-column grid for fields ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 16px;
+        }
+
+        .form-grid .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* ── Form ── */
+        .form-group {
+            margin-bottom: 16px;
+            animation: cardEnter 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+        }
+
+        .form-group:nth-child(2) { animation-delay: 0.3s; }
+        .form-group:nth-child(3) { animation-delay: 0.35s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+
+        .form-label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.9rem;
+            pointer-events: none;
+            transition: color 0.3s, transform 0.3s;
+        }
+
+        .form-input,
+        .form-select-custom {
+            width: 100%;
+            padding: 12px 40px 12px 16px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1.5px solid rgba(226, 232, 240, 0.8);
+            border-radius: 12px;
+            color: #1e293b;
+            font-size: 0.92rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-input:focus,
+        .form-select-custom:focus {
+            outline: none;
+            border-color: #f97316;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.08), 0 2px 8px rgba(249, 115, 22, 0.1);
+        }
+
+        .form-input:focus + .input-icon {
+            color: #f97316;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .form-input::placeholder {
+            color: #94a3b8;
+        }
+
+        /* ── Password Toggle ── */
+        .toggle-password,
+        .toggle-confirm {
+            pointer-events: all;
+            cursor: pointer;
+        }
+
+        /* ── Password Strength ── */
+        .strength-bar {
+            height: 4px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.4s ease, background 0.4s ease;
+        }
+
+        .strength-text {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* ── Submit Button ── */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.2px;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+            margin-top: 6px;
+            position: relative;
+            overflow: hidden;
+            animation: cardEnter 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+        }
+
+        .btn-submit::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn-submit:hover::after {
+            opacity: 1;
+        }
+
+        .btn-submit:active {
+            transform: translateY(0) scale(0.99);
+        }
+
+        /* ── Footer ── */
+        .card-footer-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #64748b;
+            font-size: 0.88rem;
+            animation: cardEnter 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+        }
+
+        .card-footer-text a {
+            color: #f97316;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .card-footer-text a:hover {
+            color: #ea580c;
+            text-decoration: underline;
+        }
+
+        /* ── Flash Messages ── */
+        .flash-messages {
+            margin-bottom: 16px;
+        }
+
+        .flash-message {
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .flash-error {
+            background: rgba(254, 242, 242, 0.9);
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .flash-success {
+            background: rgba(240, 253, 244, 0.9);
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+
+        /* ── Benefits row ── */
+        .benefits-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+            animation: cardEnter 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+        }
+
+        .benefit-chip {
+            background: rgba(16, 185, 129, 0.06);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            color: #059669;
+            border-radius: 100px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .benefit-chip:hover {
+            background: rgba(16, 185, 129, 0.12);
+            transform: translateY(-1px);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 520px) {
+            .glass-card {
+                padding: 30px 22px 24px;
+                border-radius: 22px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid .full-width {
+                grid-column: 1;
+            }
+
+            .bg-mesh .blob {
+                filter: blur(60px);
+            }
+
+            .bg-mesh .blob-1 { width: 300px; height: 300px; }
+            .bg-mesh .blob-2 { width: 280px; height: 280px; }
+            .bg-mesh .blob-3 { width: 220px; height: 220px; }
+        }
+        /* ── Back to Home Button ── */
+        .btn-back-home {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 100px;
+            color: #1e293b;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-back-home:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateX(-5px);
+            color: #f97316;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-back-home i {
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+        }
+
+        .btn-back-home:hover i {
+            transform: translateX(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .btn-back-home {
+                top: 20px;
+                left: 20px;
+                padding: 8px 16px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="{{ url_for('splash') }}" class="btn-back-home">
+        <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+
+    <!-- Animated Mesh Gradient Background -->
+    <div class="bg-mesh" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="blob blob-4"></div>
+    </div>
+
+    <!-- Glassmorphism Card -->
+    <div class="glass-card" id="registerCard">
+
+        <!-- Brand -->
+        <div class="brand-logo">
+            <i class="fas fa-heartbeat"></i> SmartFit
+        </div>
+
+        <h1 class="card-title">Create Account</h1>
+        <p class="card-subtitle">Start your fitness journey today — it's free</p>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <i
+                    class="fas fa-{% if category == 'error' %}exclamation-circle{% else %}check-circle{% endif %} me-1"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Form -->
+        <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+            <div class="form-grid">
+
+                <!-- Full Name -->
+                <div class="form-group full-width">
+                    <label class="form-label" for="name"><i class="fas fa-user me-1"></i> Full Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="name" name="name" class="form-input" placeholder="John Doe" required
+                            autocomplete="name">
+                        <i class="fas fa-user input-icon"></i>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group full-width">
+                    <label class="form-label" for="email"><i class="fas fa-envelope me-1"></i> Email Address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" name="email" class="form-input" placeholder="you@example.com"
+                            required autocomplete="email">
+                        <i class="fas fa-envelope input-icon"></i>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label class="form-label" for="password"><i class="fas fa-lock me-1"></i> Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" class="form-input"
+                            placeholder="Create password" required autocomplete="new-password">
+                        <i class="fas fa-eye input-icon toggle-password" id="togglePassword"></i>
+                    </div>
+                    <div class="strength-bar">
+                        <div class="strength-fill" id="strengthFill"></div>
+                    </div>
+                    <div class="strength-text" id="strengthText">Enter a password</div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+                    <label class="form-label" for="confirm_password"><i class="fas fa-lock me-1"></i> Confirm</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-input"
+                            placeholder="Repeat password" required autocomplete="new-password">
+                        <i class="fas fa-eye input-icon toggle-confirm" id="toggleConfirm"></i>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Hidden role -->
+            <input type="hidden" name="role" value="user">
+
+            <button type="submit" class="btn-submit" id="registerSubmitBtn">
+                <i class="fas fa-user-plus me-2"></i> Create Account
+            </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="card-footer-text">
+            Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
+        </div>
+
+        <!-- Benefits -->
+        <div class="benefits-row">
+            <span class="benefit-chip"><i class="fas fa-check"></i> Free Forever</span>
+            <span class="benefit-chip"><i class="fas fa-shield-alt"></i> Secure</span>
+            <span class="benefit-chip"><i class="fas fa-bolt"></i> Instant Access</span>
+        </div>
+
+    </div>
+
+    <script>
+        // ── Password show/hide ──
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const input = document.getElementById('password');
+            const isText = input.type === 'text';
+            input.type = isText ? 'password' : 'text';
+            this.classList.toggle('fa-eye', isText);
+            this.classList.toggle('fa-eye-slash', !isText);
+        });
+
+        document.getElementById('toggleConfirm').addEventListener('click', function () {
+            const input = document.getElementById('confirm_password');
+            const isText = input.type === 'text';
+            input.type = isText ? 'password' : 'text';
+            this.classList.toggle('fa-eye', isText);
+            this.classList.toggle('fa-eye-slash', !isText);
+        });
+
+        // ── Password strength ──
+        const passwordInput = document.getElementById('password');
+        const strengthFill = document.getElementById('strengthFill');
+        const strengthText = document.getElementById('strengthText');
+
+        passwordInput.addEventListener('input', function () {
+            const val = this.value;
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            const levels = [
+                { pct: '0%', color: '#e2e8f0', label: 'Enter a password' },
+                { pct: '25%', color: '#ef4444', label: 'Weak' },
+                { pct: '55%', color: '#f59e0b', label: 'Fair' },
+                { pct: '80%', color: '#3b82f6', label: 'Good' },
+                { pct: '100%', color: '#10b981', label: '🔒 Strong' },
+            ];
+
+            const lv = levels[score];
+            strengthFill.style.width = lv.pct;
+            strengthFill.style.background = lv.color;
+            strengthText.textContent = lv.label;
+            strengthText.style.color = lv.color === '#e2e8f0' ? '#94a3b8' : lv.color;
+        });
+    </script>
+</body>
+
+</html>

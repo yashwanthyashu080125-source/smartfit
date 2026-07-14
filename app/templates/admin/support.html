@@ -1,0 +1,140 @@
+{% extends "admin/admin_base.html" %}
+
+{% block page_title %}Support Tickets{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">All Support Tickets</h5>
+                </div>
+
+                {% if tickets %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in tickets %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle bg-primary text-white me-2" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                                    {{ ticket.user.name[0]|upper }}
+                                                </div>
+                                                <div>
+                                                    <span class="d-block fw-semibold">{{ ticket.user.name }}</span>
+                                                    <small class="text-muted">{{ ticket.user.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="d-block fw-semibold text-truncate" style="max-width: 250px;">{{ ticket.subject }}</span>
+                                            <small class="text-muted text-truncate d-block" style="max-width: 250px;">{{ ticket.message }}</small>
+                                        </td>
+                                        <td>
+                                            {% if ticket.status == 'Pending' %}
+                                                <span class="badge bg-warning text-dark rounded-pill">Pending</span>
+                                            {% elif ticket.status == 'Resolved' %}
+                                                <span class="badge bg-success rounded-pill">Resolved</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary rounded-pill">{{ ticket.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#replyModal{{ ticket.id }}">
+                                                {% if ticket.status == 'Pending' %}
+                                                    <i class="fas fa-reply me-1"></i> Reply
+                                                {% else %}
+                                                    <i class="fas fa-eye me-1"></i> View
+                                                {% endif %}
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Reply Modal -->
+                                    <div class="modal fade" id="replyModal{{ ticket.id }}" tabindex="-1" aria-labelledby="replyModalLabel{{ ticket.id }}" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                                            <div class="modal-content border-0 rounded-4 shadow">
+                                                <div class="modal-header border-bottom-0 pb-0">
+                                                    <h5 class="modal-title fw-bold" id="replyModalLabel{{ ticket.id }}">Support Ticket Details</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body p-4">
+                                                    
+                                                    <!-- User Info & Question -->
+                                                    <div class="bg-light p-4 rounded-4 mb-4">
+                                                        <div class="d-flex align-items-center mb-3">
+                                                            <div class="avatar-circle bg-primary text-white me-3" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold;">
+                                                                {{ ticket.user.name[0]|upper }}
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-0 fw-bold">{{ ticket.user.name }}</h6>
+                                                                <small class="text-muted">{{ ticket.user.email }} | {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                                            </div>
+                                                        </div>
+                                                        <hr class="border-secondary opacity-25 my-3">
+                                                        <h6 class="fw-bold mb-2">{{ ticket.subject }}</h6>
+                                                        <p class="mb-0 text-dark">{{ ticket.message }}</p>
+                                                    </div>
+
+                                                    <!-- Reply Form -->
+                                                    {% if ticket.status == 'Pending' %}
+                                                        <form action="{{ url_for('admin.support_reply', ticket_id=ticket.id) }}" method="POST">
+                                                            <div class="mb-3">
+                                                                <label for="admin_reply{{ ticket.id }}" class="form-label fw-semibold">Your Reply <span class="text-danger">*</span></label>
+                                                                <textarea class="form-control bg-light border-0" id="admin_reply{{ ticket.id }}" name="admin_reply" rows="4" required placeholder="Type your answer here to resolve this ticket..."></textarea>
+                                                            </div>
+                                                            <div class="text-end mt-4">
+                                                                <button type="button" class="btn btn-light rounded-pill px-4 me-2" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="fas fa-paper-plane me-2"></i>Submit Reply</button>
+                                                            </div>
+                                                        </form>
+                                                    {% else %}
+                                                        <!-- Existing Reply -->
+                                                        <div class="border border-success border-opacity-25 bg-white p-4 rounded-4 position-relative">
+                                                            <div class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-success px-3 py-2">
+                                                                <i class="fas fa-check-circle me-1"></i> Resolved
+                                                            </div>
+                                                            <h6 class="fw-bold text-success mb-2 mt-2"><i class="fas fa-headset me-2"></i>Admin Reply</h6>
+                                                            <p class="mb-0 text-dark">{{ ticket.admin_reply }}</p>
+                                                        </div>
+                                                        <div class="text-end mt-4">
+                                                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                                                        </div>
+                                                    {% endif %}
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-check-circle text-success fa-2x"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark">No Pending Tickets</h5>
+                        <p class="text-muted">All support requests have been answered.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
