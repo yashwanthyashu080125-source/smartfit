@@ -1,5 +1,5 @@
 import requests
-from app.config import Config
+from config import Config
 
 # =========================================
 # FOOD DETECTION FROM IMAGE
