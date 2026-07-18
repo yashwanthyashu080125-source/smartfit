@@ -1,5 +1,6 @@
 from app.extensions import db
 from datetime import datetime
+import typing
 
 class Notification(db.Model):
     __tablename__ = 'notifications'
@@ -13,6 +14,9 @@ class Notification(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', backref=db.backref('notifications', lazy=True))
+
+    def __init__(self, **kwargs: typing.Any) -> None:
+        super(Notification, self).__init__(**kwargs)
 
     def __repr__(self):
         return f'<Notification {self.title}>'

@@ -92,6 +92,13 @@ class NutritionLog(db.Model):
     )
 
     # ============================
+    # INITIALIZATION
+    # ============================
+
+    def __init__(self, **kwargs):
+        super(NutritionLog, self).__init__(**kwargs)
+
+    # ============================
     # STRING REPRESENTATION
     # ============================
 

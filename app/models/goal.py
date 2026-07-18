@@ -21,6 +21,9 @@ class Goal(db.Model):
 
     user = db.relationship('User', backref=db.backref('goals', lazy=True))
 
+    def __init__(self, **kwargs):
+        super(Goal, self).__init__(**kwargs)
+
     def __repr__(self):
         return f'<Goal {self.title} - {self.goal_type}>'
 

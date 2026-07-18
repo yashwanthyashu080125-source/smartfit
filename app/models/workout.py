@@ -24,5 +24,8 @@ class Workout(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    def __init__(self, **kwargs):
+        super(Workout, self).__init__(**kwargs)
+
     def __repr__(self):
         return f"<Workout {self.workout_type}>"

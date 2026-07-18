@@ -1,5 +1,6 @@
 from app.extensions import db
 from datetime import datetime
+import typing
 
 
 class WorkoutPlan(db.Model):
@@ -30,6 +31,10 @@ class WorkoutPlan(db.Model):
 
     # ✅ Relationship
     user = db.relationship("User", backref="workout_plans", lazy=True)
+
+    def __init__(self, **kwargs: typing.Any) -> None:
+        super(WorkoutPlan, self).__init__(**kwargs)
+
 
     # ✅ Method to mark as completed
     def mark_completed(self):

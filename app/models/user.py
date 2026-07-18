@@ -36,6 +36,12 @@ class User(UserMixin, db.Model):
     last_login = db.Column(db.DateTime)
 
     # =========================
+    # INITIALIZATION (For Type Checkers)
+    # =========================
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+
+    # =========================
     # PASSWORD FUNCTIONS
     # =========================
     def set_password(self, password):

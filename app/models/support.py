@@ -17,5 +17,8 @@ class SupportTicket(db.Model):
     # Relationship to user
     user = db.relationship('User', backref=db.backref('support_tickets', lazy=True, cascade="all, delete-orphan"))
 
+    def __init__(self, **kwargs):
+        super(SupportTicket, self).__init__(**kwargs)
+
     def __repr__(self):
         return f"<SupportTicket {self.id} - {self.subject}>"

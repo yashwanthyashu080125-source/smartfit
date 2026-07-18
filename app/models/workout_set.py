@@ -31,5 +31,8 @@ class WorkoutSet(db.Model):
     user = db.relationship("User", backref="workout_sets", lazy=True)
     workout = db.relationship("Workout", backref="sets", lazy=True)
 
+    def __init__(self, **kwargs):
+        super(WorkoutSet, self).__init__(**kwargs)
+
     def __repr__(self):
         return f"<WorkoutSet {self.exercise_name} {self.sets}x{self.reps}@{self.weight_kg}kg>"

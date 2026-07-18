@@ -14,5 +14,8 @@ class SleepLog(db.Model):
     # Relationship
     user = db.relationship('User', backref=db.backref('sleep_logs', lazy=True))
 
+    def __init__(self, **kwargs):
+        super(SleepLog, self).__init__(**kwargs)
+
     def __repr__(self):
         return f'<SleepLog {self.user_id} - {self.hours}h on {self.date}>'

@@ -1,5 +1,6 @@
 from app.extensions import db
 from datetime import datetime
+import typing
 
 
 class DietPlan(db.Model):
@@ -29,6 +30,10 @@ class DietPlan(db.Model):
 
     # Relationship
     user = db.relationship("User", backref="diet_plans", lazy=True)
+
+    def __init__(self, **kwargs: typing.Any) -> None:
+        super(DietPlan, self).__init__(**kwargs)
+
 
     # Method to mark as completed
     def mark_completed(self):
