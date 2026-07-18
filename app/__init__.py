@@ -38,8 +38,9 @@ def create_app():
     from app.models.support import SupportTicket
     from app.models.contact import ContactMessage
 
-    # ❌ REMOVE db.create_all() (IMPORTANT)
-    # Flask-Migrate will handle DB creation
+    # Create tables automatically
+    with app.app_context():
+        db.create_all()
 
     # ==========================
     # Register Blueprints
